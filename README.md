@@ -1,5 +1,5 @@
 
-# Bienvenido al repositorio 🎉
+# Bienvenido al repositorio 
 
 Este repositorio contiene el backend en **Django REST Framework** y el frontend en **React** para el proyecto VentasXperts. Aquí encontrarás los comandos e instrucciones necesarias para instalar y ejecutar el proyecto correctamente.
 
