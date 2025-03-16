@@ -117,8 +117,8 @@ class Carrito(models.Model):
 class CarritoProducto(models.Model):
     carrito = models.ForeignKey(Carrito, on_delete=models.CASCADE, null=True)
     producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
-    cantidad = models.IntegerField()
-    subtotal = models.DecimalField(max_digits=10, decimal_places=2)
+    cantidad = models.IntegerField(null=True)
+    subtotal = models.DecimalField(max_digits=10, decimal_places=2, null=True)
 
     class Meta:
         db_table = 'Carrito_x_Producto'
