@@ -10,9 +10,22 @@ from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from xhtml2pdf import pisa
-from Administracion.models import Producto, CarritoProducto, Carrito, Venta, Finanzas, Categoria, Proveedor
-from .serializers import ProductoSerializer, CarritoProductoSerializer, VentaSerializer, FinanzasSerializer, CategoriaSerializer, ProveedorSerializer
+from Administracion.models import Producto, CarritoProducto, Carrito, Venta, Finanzas, Categoria, Proveedor, Caja
+from .serializers import ProductoSerializer, CarritoProductoSerializer, VentaSerializer, FinanzasSerializer, CategoriaSerializer, ProveedorSerializer, CarritoSerializer, UserCreateSerializer, CajaSerializer
 
+class UserViewSet(viewsets.ViewSet):
+    @action(detail=False, methods=['post'])
+    def create_user(self, request):
+        """Permite registrar un nuevo usuario"""
+        serializer = UserCreateSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'message': 'Usuario creado exitosamente'}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class CajaViewSet(viewsets.ModelViewSet):
+    queryset = Caja.objects.all()
+    serializer_class = CajaSerializer
 
 class ProductoViewSet(viewsets.ModelViewSet):
     queryset = Producto.objects.all()
@@ -26,6 +39,10 @@ class ProveedorViewSet(viewsets.ModelViewSet):
     queryset = Proveedor.objects.all()
     serializer_class = ProveedorSerializer
     
+class carritoViewSet(viewsets.ModelViewSet):
+    queryset = Carrito.objects.all()
+    serializer_class = CarritoSerializer
+    
 class CarritoProductoViewSet(viewsets.ModelViewSet):
     queryset = CarritoProducto.objects.select_related('producto').all()
     serializer_class = CarritoProductoSerializer
@@ -35,10 +52,19 @@ class CarritoProductoViewSet(viewsets.ModelViewSet):
         """Añade una unidad del producto al carrito"""
         producto = get_object_or_404(Producto, pk=pk)
         carrito_producto, created = CarritoProducto.objects.get_or_create(producto=producto)
+
+        if carrito_producto.cantidad is None:
+            carrito_producto.cantidad = 0  # Asignar un valor inicial
+        
+        if carrito_producto.subtotal is None:
+            carrito_producto.subtotal = 0
+
         carrito_producto.cantidad += 1
         carrito_producto.subtotal += producto.precio_tienda
         carrito_producto.save()
-        return Response({'message': 'Producto agregado', 'cantidad': carrito_producto.cantidad}, status=status.HTTP_200_OK)
+
+        return Response({'message': 'Producto agregado', 'cantidad': carrito_producto.cantidad}, status=200)
+
 
     @action(detail=True, methods=['post'])
     def restar(self, request, pk=None):
@@ -76,10 +102,14 @@ class VentaViewSet(viewsets.ModelViewSet):
         # Crear un registro en Finanzas
         finanzas = Finanzas.objects.create(fecha=fecha_actual.date(), hora=fecha_actual.time())
 
+        # Funcion para comprobar el usuario en sesion y capturar su id
+        user = User.objects.get(username=request.user)
+        caja_actual = Caja.objects.get(user=user)
+
         # Crear la venta
         venta = Venta.objects.create(
             carrito=Carrito.objects.create(precio_total=total_costo),
-            caja=request.user.caja,  # Se asume que el usuario tiene una caja asociada
+            caja=caja_actual,  # Se asume que el usuario tiene una caja asociada
             finanzas=finanzas,
             total=total_costo,
             fecha=fecha_actual
@@ -95,10 +125,10 @@ class TicketViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['get'])
     def historial(self, request):
         """Lista todos los tickets en PDF generados"""
-        pdf_folder = os.path.join(settings.BASE_DIR, 'Ventas_caja', 'media', 'pdf_ticket')
+        pdf_folder = os.path.join(settings.BASE_DIR, 'Caja', 'media', 'pdf_ticket')
 
         if not os.path.exists(pdf_folder):
-            return Response({'message': 'No hay tickets disponibles'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'message': 'No existe la carpeta'}, status=status.HTTP_404_NOT_FOUND)
 
         pdf_files = []
         for file_name in os.listdir(pdf_folder):
@@ -117,7 +147,11 @@ class TicketViewSet(viewsets.ViewSet):
     @action(detail=True, methods=['get'])
     def descargar(self, request, pk=None):
         """Descarga un ticket en PDF"""
-        file_path = os.path.join(settings.BASE_DIR, 'Ventas_caja', 'media', 'pdf_ticket', pk)
+        if not pk.endswith('.pdf'):
+            pk += '.pdf'
+        
+        file_path = os.path.abspath(os.path.join('Caja', 'media', 'pdf_ticket', pk))
+        print(f"Buscando archivo en: {file_path}")
         if not os.path.exists(file_path):
             return Response({'message': 'Archivo no encontrado'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -144,8 +178,8 @@ class TicketViewSet(viewsets.ViewSet):
             'usuario': request.user
         }
 
-        html = render_to_string('Ventas_caja/ticket_pdf.html', context)
-        pdf_dir = os.path.join(settings.BASE_DIR, 'Ventas_caja', 'media', 'pdf_ticket')
+        html = render_to_string('ticket_pdf.html', context)
+        pdf_dir = os.path.join(settings.BASE_DIR, 'Caja', 'media', 'pdf_ticket')
         os.makedirs(pdf_dir, exist_ok=True)
         pdf_path = os.path.join(pdf_dir, f'ticket_{datetime.datetime.now().strftime("%Y%m%d%H%M%S")}.pdf')
 
