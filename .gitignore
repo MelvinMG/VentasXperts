@@ -1,1 +1,13 @@
+# Ignore virtual environment
+venv/
+.venv/
+env/
+
+# Ignore Django migration files
+*.pyc
+*.pyo
+__pycache__/
+*.log
+
+# Ignore database
 VentasXperts/db.sqlite3
