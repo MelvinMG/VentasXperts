@@ -33,6 +33,8 @@ cd VentasXperts
 
 ```bash
 python -m venv .venv
+o
+virtualenv .venv
 # Activar el entorno virtual en Windows
 venv\Scripts\activate
 # En MacOS/Linux
@@ -70,7 +72,7 @@ Sigue las instrucciones en pantalla y usa:
 
 -   **Usuario:** `SU`
 -   **Correo:** `tu_correo@example.com`
--   **Contraseña:** `SU1234`
+-   **Contraseña:** `SU12345`
 
 ### 6️⃣ Ejecutar el servidor de desarrollo
 
