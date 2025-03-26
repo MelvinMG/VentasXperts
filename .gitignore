@@ -8,3 +8,5 @@ env/
 __pycache__/
 *.log
 
+# Ignore database
+VentasXperts/db.sqlite3
