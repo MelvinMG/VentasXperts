@@ -10,6 +10,7 @@ En esta sección se manejan distintas solicitudes http que permiten simular el p
 Asegúrate de tener instalado lo siguiente antes de comenzar:
 
 -   **Extension de VSC: Thunder Client**
+-   **Crear un superusuario usando python manage.py createsuperuser** 
 
 ## ⚙️ Pasos para completar un cobro de caja
 
@@ -19,13 +20,31 @@ Asegúrate de tener instalado lo siguiente antes de comenzar:
 # Crea usuario a traves de Thunder Client [POST]
 http://127.0.0.1:8000/api/caja/usuarios/crear/
 
+# En auth basica pon las credenciales del super usuario que creaste
+
 # JSON body
 {
-  "username": "tu usuario",
-  "email": "tuusuario@gmail.com",
-  "password": "tu contraseña"
+  "user": {
+    "username": "cajero1",
+    "email": "cajero@gmail.com",
+    "password": "12345",
+    "first_name": "Juanito",
+    "last_name": "Diaz Hernandez",
+    "group_id": 3
+  },
+  "persona": {
+    "nombre": "Juanito",
+    "apPaterno": "Diaz",
+    "apMaterno": "Hernandez",
+    "genero": "M",
+    "correo": "cajero1@gmail.com",
+    "telefono": "5512345678",
+    "rfc": "JUDH850101",
+    "curp": "JUDH850101MDFRZN03"
+  }
 }
 ```
+## Nota: Las siguientes acciones requieren de autenticacion del cajero que acabas de crear
 
 ### 2.- Crea una caja (Si aún no existe)
 
@@ -35,7 +54,7 @@ http://127.0.0.1:8000/api/caja/cajas/
 
 # JSON body
 {
-  "user":"1",
+  "user":"2",
   "saldo_actual":"0.0",
   "corte_caja":"0.0"
 }

@@ -2,7 +2,7 @@ import datetime
 import os
 import io
 from django.conf import settings
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from django.http import HttpResponse, FileResponse
 from django.template.loader import render_to_string
 from django.shortcuts import get_object_or_404
@@ -10,42 +10,102 @@ from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from xhtml2pdf import pisa
-from Administracion.models import Producto, CarritoProducto, Carrito, Venta, Finanzas, Categoria, Proveedor, Caja
-from .serializers import ProductoSerializer, CarritoProductoSerializer, VentaSerializer, FinanzasSerializer, CategoriaSerializer, ProveedorSerializer, CarritoSerializer, UserCreateSerializer, CajaSerializer
+from .permissions import IsCajero
+from django.db import transaction
+from Administracion.models import Producto, CarritoProducto, Carrito, Venta, Finanzas, Categoria, Proveedor, Caja, Persona
+from .serializers import ProductoSerializer, CarritoProductoSerializer, VentaSerializer, FinanzasSerializer, CategoriaSerializer, ProveedorSerializer, CarritoSerializer, UserSerializer, PersonaSerializer, UserCreateSerializer, CajaSerializer
+
+# Importar comandos para generar tickets
+from .commands.listar_historial_command import ListarHistorialCommand
+from .commands.descargar_ticket_command import DescargarTicketCommand
+from .commands.generar_ticket_command import GenerarTicketCommand
+
 
 class UserViewSet(viewsets.ViewSet):
+    @transaction.atomic
     @action(detail=False, methods=['post'])
     def create_user(self, request):
-        """Permite registrar un nuevo usuario"""
-        serializer = UserCreateSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({'message': 'Usuario creado exitosamente'}, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        """
+        Crear un usuario junto con su persona asociada y asignarle un grupo existente por ID.
+        crea un super usuario para poder hacer esto.
+        """
+        user_data = request.data.get('user')
+        persona_data = request.data.get('persona')
+
+        if not user_data or not persona_data:
+            return Response({'detail': 'Datos del usuario o persona incompletos.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user = User.objects.create_user(
+                username=user_data['username'],
+                email=user_data['email'],
+                password=user_data['password'],
+                first_name=user_data['first_name'],
+                last_name=user_data['last_name']
+            )
+            user.save()
+
+            # Asignar grupo existente por ID
+            group_id = user_data.get('group_id')
+            if group_id:
+                try:
+                    group = Group.objects.get(id=group_id)
+                    user.groups.add(group)
+                except Group.DoesNotExist:
+                    return Response({'detail': f'Grupo con ID {group_id} no encontrado.'}, status=status.HTTP_404_NOT_FOUND)
+
+            persona = Persona.objects.create(
+                user=user,
+                nombre=persona_data['nombre'],
+                apPaterno=persona_data['apPaterno'],
+                apMaterno=persona_data.get('apMaterno', ''),
+                genero=persona_data['genero'],
+                correo=persona_data['correo'],
+                telefono=persona_data['telefono'],
+                rfc=persona_data['rfc'],
+                curp=persona_data['curp']
+            )
+
+            user_serializer = UserSerializer(user)
+            persona_serializer = PersonaSerializer(persona)
+
+            return Response({
+                'user': user_serializer.data,
+                'persona': persona_serializer.data
+            }, status=status.HTTP_201_CREATED)
+
+        except KeyError as e:
+            return Response({'detail': f'Campo faltante: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
 
 class CajaViewSet(viewsets.ModelViewSet):
     queryset = Caja.objects.all()
     serializer_class = CajaSerializer
+    permission_classes = [IsCajero]
 
 class ProductoViewSet(viewsets.ModelViewSet):
     queryset = Producto.objects.all()
     serializer_class = ProductoSerializer
+    permission_classes = [IsCajero]
     
 class CategoriaViewSet(viewsets.ModelViewSet):
     queryset = Categoria.objects.all()
     serializer_class = CategoriaSerializer
+    permission_classes = [IsCajero]
     
 class ProveedorViewSet(viewsets.ModelViewSet):
     queryset = Proveedor.objects.all()
     serializer_class = ProveedorSerializer
+    permission_classes = [IsCajero]
     
 class carritoViewSet(viewsets.ModelViewSet):
     queryset = Carrito.objects.all()
     serializer_class = CarritoSerializer
+    permission_classes = [IsCajero]
     
 class CarritoProductoViewSet(viewsets.ModelViewSet):
     queryset = CarritoProducto.objects.select_related('producto').all()
     serializer_class = CarritoProductoSerializer
+    permission_classes = [IsCajero]
 
     @action(detail=True, methods=['post'])
     def agregar(self, request, pk=None):
@@ -88,6 +148,7 @@ class CarritoProductoViewSet(viewsets.ModelViewSet):
 class VentaViewSet(viewsets.ModelViewSet):
     queryset = Venta.objects.all()
     serializer_class = VentaSerializer
+    permission_classes = [IsCajero]
 
     @action(detail=False, methods=['post'])
     def procesar_venta(self, request):
@@ -122,68 +183,16 @@ class VentaViewSet(viewsets.ModelViewSet):
 
 
 class TicketViewSet(viewsets.ViewSet):
+    permission_classes = [IsCajero]
+    
     @action(detail=False, methods=['get'])
     def historial(self, request):
-        """Lista todos los tickets en PDF generados"""
-        pdf_folder = os.path.join(settings.BASE_DIR, 'Caja', 'media', 'pdf_ticket')
-
-        if not os.path.exists(pdf_folder):
-            return Response({'message': 'No existe la carpeta'}, status=status.HTTP_404_NOT_FOUND)
-
-        pdf_files = []
-        for file_name in os.listdir(pdf_folder):
-            if file_name.endswith('.pdf'):
-                file_path = os.path.join(pdf_folder, file_name)
-                creation_time = datetime.datetime.fromtimestamp(os.path.getctime(file_path))
-                pdf_files.append({
-                    'name': file_name,
-                    'creation_time': creation_time.strftime("%Y-%m-%d %H:%M:%S"),
-                    'path': f'{settings.MEDIA_URL}pdf_ticket/{file_name}'
-                })
-
-        pdf_files.sort(key=lambda x: x['creation_time'], reverse=True)
-        return Response(pdf_files, status=status.HTTP_200_OK)
+        return ListarHistorialCommand().execute(request)
 
     @action(detail=True, methods=['get'])
     def descargar(self, request, pk=None):
-        """Descarga un ticket en PDF"""
-        if not pk.endswith('.pdf'):
-            pk += '.pdf'
-        
-        file_path = os.path.abspath(os.path.join('Caja', 'media', 'pdf_ticket', pk))
-        print(f"Buscando archivo en: {file_path}")
-        if not os.path.exists(file_path):
-            return Response({'message': 'Archivo no encontrado'}, status=status.HTTP_404_NOT_FOUND)
-
-        return FileResponse(open(file_path, 'rb'), content_type='application/pdf')
+        return ListarHistorialCommand().execute(request)
 
     @action(detail=False, methods=['post'])
     def generar_ticket(self, request):
-        """Genera un ticket en PDF"""
-        productos = Producto.objects.all()
-        carrito_productos = CarritoProducto.objects.select_related('producto').all()
-        total_productos = sum([cp.cantidad for cp in carrito_productos])
-        total_costo_productos = sum([cp.subtotal for cp in carrito_productos])
-        
-        fecha_actual = datetime.datetime.now().strftime("%d/%m/%Y")
-        hora_actual = datetime.datetime.now().strftime("%H:%M:%S")
-
-        context = {
-            'productos': productos,
-            'carritoProductos': carrito_productos,
-            'total_productos': total_productos,
-            'total_costo_productos': total_costo_productos,
-            'fecha_actual': fecha_actual,
-            'hora_actual': hora_actual,
-            'usuario': request.user
-        }
-
-        html = render_to_string('ticket_pdf.html', context)
-        pdf_dir = os.path.join(settings.BASE_DIR, 'Caja', 'media', 'pdf_ticket')
-        os.makedirs(pdf_dir, exist_ok=True)
-        pdf_path = os.path.join(pdf_dir, f'ticket_{datetime.datetime.now().strftime("%Y%m%d%H%M%S")}.pdf')
-
-        with open(pdf_path, "wb") as pdf_file:
-            pisa.CreatePDF(io.BytesIO(html.encode("UTF-8")), dest=pdf_file, encoding='UTF-8')
-
-        return Response({'message': 'Ticket generado', 'ticket_path': pdf_path}, status=status.HTTP_201_CREATED)
+        return GenerarTicketCommand().execute(request)
