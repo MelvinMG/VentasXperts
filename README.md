@@ -33,6 +33,8 @@ cd VentasXperts
 
 ```bash
 python -m venv .venv
+# o tambien se puede usar el virtualenv
+virtualenv .venv
 # Activar el entorno virtual en Windows
 venv\Scripts\activate
 # En MacOS/Linux
