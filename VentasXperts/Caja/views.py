@@ -10,7 +10,7 @@ from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from xhtml2pdf import pisa
-from .permissions import IsCajero
+from .permissions import IsCajero, IsAdministrador
 from django.db import transaction
 from Administracion.models import Producto, CarritoProducto, Carrito, Venta, Finanzas, Categoria, Proveedor, Caja, Persona
 from .serializers import ProductoSerializer, CarritoProductoSerializer, VentaSerializer, FinanzasSerializer, CategoriaSerializer, ProveedorSerializer, CarritoSerializer, UserSerializer, PersonaSerializer, UserCreateSerializer, CajaSerializer
@@ -22,6 +22,7 @@ from .commands.generar_ticket_command import GenerarTicketCommand
 
 
 class UserViewSet(viewsets.ViewSet):
+    permission_classes = [IsAdministrador]
     @transaction.atomic
     @action(detail=False, methods=['post'])
     def create_user(self, request):
@@ -29,6 +30,7 @@ class UserViewSet(viewsets.ViewSet):
         Crear un usuario junto con su persona asociada y asignarle un grupo existente por ID.
         crea un super usuario para poder hacer esto.
         """
+        
         user_data = request.data.get('user')
         persona_data = request.data.get('persona')
 

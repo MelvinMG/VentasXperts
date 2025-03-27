@@ -8,3 +8,11 @@ class IsCajero(BasePermission):
 
     def has_permission(self, request, view):
         return request.user and request.user.is_authenticated and request.user.groups.filter(id=3).exists()
+    
+class IsAdministrador(BasePermission):
+    """
+    Permite acceso solo a usuarios que pertenezcan al grupo con ID 1 (Administrador).
+    """
+
+    def has_permission(self, request, view):
+        return request.user and request.user.is_authenticated and request.user.groups.filter(id=1).exists()
