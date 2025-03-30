@@ -2,5 +2,5 @@ Django==5.1.7
 djangorestframework==3.15.2
 
 # Requerimientos caja
-xhtml2pdf
-weasyprint
+xhtml2pdf==0.2.17
+weasyprint==65.0
