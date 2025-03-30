@@ -12,7 +12,7 @@ from rest_framework.decorators import action
 from xhtml2pdf import pisa
 from .permissions import IsCajero, IsAdministrador
 from django.db import transaction
-from Administracion.models import Producto, CarritoProducto, Carrito, Venta, Finanzas, Categoria, Proveedor, Caja, Persona
+from Administracion.models import Producto, CarritoProducto, Carrito, Venta, Finanzas, Categoria, Proveedor, Caja, Persona, Bitacora
 from .serializers import ProductoSerializer, CarritoProductoSerializer, VentaSerializer, FinanzasSerializer, CategoriaSerializer, ProveedorSerializer, CarritoSerializer, UserSerializer, PersonaSerializer, UserCreateSerializer, CajaSerializer
 
 # Importar comandos para generar tickets
@@ -176,6 +176,17 @@ class VentaViewSet(viewsets.ModelViewSet):
             finanzas=finanzas,
             total=total_costo,
             fecha=fecha_actual
+        )
+        
+        # Crear una bitácora de la venta
+        detalle_venta = "\n".join(
+            [f"Producto: {cp.producto.nombre}, Cantidad: {cp.cantidad}" for cp in carrito_productos]
+        )
+        Bitacora.objects.create(
+            usuario=user,
+            rol="Cajero",  # Puedes ajustar el rol según sea necesario
+            accion="purchase",
+            detalle=f"Venta procesada. Productos vendidos:\n{detalle_venta}"
         )
 
         # Vaciar carrito
