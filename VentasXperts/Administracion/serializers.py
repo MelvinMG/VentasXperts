@@ -1,21 +1,33 @@
 from django.contrib.auth.models import User, Group
 from rest_framework import serializers
-from .models import Persona 
+from .models import Persona
 
 class PersonaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Persona
-        fields = ['id', 'user', 'nombre', 'apPaterno', 'apMaterno', 'genero', 'correo', 'telefono', 'rfc', 'curp', 'created_at', 'updated_at']
+        fields = [
+            'id', 'nombre', 'apPaterno', 'apMaterno', 'genero', 'correo',
+            'telefono', 'rfc', 'curp', 'created_at', 'updated_at'
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at']
 
 class UserSerializer(serializers.ModelSerializer):
-    persona = PersonaSerializer() # relacion con la tabla persona
+    password = serializers.CharField(write_only=True, required=True)
+    persona = PersonaSerializer(read_only=True)  # Solo lectura, porque se maneja aparte
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'persona']
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'password', 'persona']
+        read_only_fields = ['id']
+
+    def create(self, validated_data):
+        password = validated_data.pop('password')
+        user = User(**validated_data)
+        user.set_password(password)
+        user.save()
+        return user
 
 class GroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = Group
         fields = ['id', 'name']
-        

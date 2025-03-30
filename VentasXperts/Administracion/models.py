@@ -2,12 +2,10 @@ from django.db import models
 from django.contrib.auth.models import User
 
 """
-
 Creacion de la tabla de Persona  que se relaciona con la tabla de User
 Este modulo de pertece a Usuarios y Permisos
 
 La apliaccion de Usuarios y Permisos se va juntar a Administracion debido ah que son los mismos roles y permisos
-
 """
 class Persona(models.Model):
     GENERO_CHOICES = [
@@ -32,7 +30,7 @@ class Persona(models.Model):
     class Meta:
         db_table = 'Persona'
         verbose_name_plural = 'Personas'
-       
+
     def __str__(self):
         return f"{self.nombre} {self.apPaterno} {self.apMaterno}"
 
@@ -60,23 +58,21 @@ class Proveedor(models.Model):
 
 #? Tabla de Productos le pertenece a Administracion
 #** Este modulo va aparecer en la parte de Catalogo
-
 class Producto(models.Model):
-    codigo = models.CharField(max_length=100, unique=True)  # Código de barras o SKU
-    nombre = models.CharField(max_length=255)               # Nombre del producto
-    categoria = models.ForeignKey('Categoria', on_delete=models.CASCADE)  # Relación con Categoria
-    proveedor = models.ForeignKey(Proveedor, null=True, blank=True, on_delete=models.SET_NULL)  # Opcional # Relación con Proveedor
-    stock_Inventario = models.IntegerField()                # Cantidad en el inventario
-    stock_Minimo = models.IntegerField()                    # Cantidad mínima para alertas de stock bajo
-    precio_proveedor = models.DecimalField(max_digits=10, decimal_places=2)  # Precio de compra al proveedor
-    precio_tienda = models.DecimalField(max_digits=10, decimal_places=2)     # Precio de venta en tienda
-    ganancia_porcentaje = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)  # % de ganancia (calculado)
-    ganancia_pesos = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)      # Ganancia en pesos (calculado)
+    codigo = models.CharField(max_length=100, unique=True)
+    nombre = models.CharField(max_length=255)
+    categoria = models.ForeignKey('Categoria', on_delete=models.CASCADE)
+    proveedor = models.ForeignKey(Proveedor, null=True, blank=True, on_delete=models.SET_NULL)
+    stock_Inventario = models.IntegerField()
+    stock_Minimo = models.IntegerField()
+    precio_proveedor = models.DecimalField(max_digits=10, decimal_places=2)
+    precio_tienda = models.DecimalField(max_digits=10, decimal_places=2)
+    ganancia_porcentaje = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
+    ganancia_pesos = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def save(self, *args, **kwargs):
-        # Calcula la ganancia antes de guardar
         self.ganancia_pesos = self.precio_tienda - self.precio_proveedor
         if self.precio_proveedor > 0:
             self.ganancia_porcentaje = (self.ganancia_pesos / self.precio_proveedor) * 100
@@ -84,12 +80,10 @@ class Producto(models.Model):
 
     def __str__(self):
         return self.nombre
-    
+
     class Meta:
         db_table = 'Producto'
         verbose_name_plural = 'Productos'
-
-
 
 #? Tabla de Cajas le pertenece a Caja
 class Caja(models.Model):
@@ -126,22 +120,56 @@ class CarritoProducto(models.Model):
 
 #? Tabla de Carrito_x_Producto le pertenece a Caja
 class Venta(models.Model):
-    carrito = models.ForeignKey(Carrito, on_delete=models.CASCADE)  # Relación con Carrito
-    caja = models.ForeignKey('Caja', on_delete=models.CASCADE)  # Relación con Caja
-    finanzas = models.ForeignKey('Finanzas', on_delete=models.CASCADE)  # Relación con Finanzas
+    carrito = models.ForeignKey(Carrito, on_delete=models.CASCADE)
+    caja = models.ForeignKey('Caja', on_delete=models.CASCADE)
+    finanzas = models.ForeignKey('Finanzas', on_delete=models.CASCADE)
     total = models.DecimalField(max_digits=10, decimal_places=2)
     fecha = models.DateTimeField()
     created_at = models.DateTimeField(auto_now_add=True)
     update_at = models.DateTimeField(auto_now=True)
+
     class Meta:
         db_table = 'Venta'
         verbose_name_plural = 'Ventas'
+
 #? Tabla de Carrito_x_Producto le pertenece a Administracion
 class Finanzas(models.Model):
     fecha = models.DateField()
     hora = models.TimeField()
     created_at = models.DateTimeField(auto_now_add=True)
     update_at = models.DateTimeField(auto_now=True)
+
     class Meta:
         db_table = 'Finanza'
         verbose_name_plural = 'Finanzas'
+
+#? Modelo de Bitacora para auditoría de acciones
+class Bitacora(models.Model):
+    ACCION_CHOICES = [
+        ('create', 'Crear'),
+        ('update', 'Actualizar'),
+        ('delete', 'Eliminar'),
+        ('purchase', 'Compra'),
+        ('login', 'Inicio de Sesión'),
+        ('logout', 'Cierre de Sesión'),
+    ]
+
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    persona = models.ForeignKey(Persona, on_delete=models.SET_NULL, null=True, blank=True)
+    rol = models.CharField(max_length=100, null=True, blank=True)
+    accion = models.CharField(max_length=50, choices=ACCION_CHOICES)
+    detalle = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    update_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'Bitacora'
+        verbose_name_plural = 'Bitacoras'
+        indexes = [
+            models.Index(fields=['usuario']),
+            models.Index(fields=['rol']),
+            models.Index(fields=['created_at']),
+        ]
+
+    def __str__(self):
+        return f"{self.usuario.username} - {self.accion}"
