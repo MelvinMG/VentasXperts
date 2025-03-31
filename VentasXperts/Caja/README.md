@@ -54,7 +54,6 @@ http://127.0.0.1:8000/api/caja/cajas/
 
 # JSON body
 {
-  "user":"2",
   "saldo_actual":"0.0",
   "corte_caja":"0.0"
 }

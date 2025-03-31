@@ -11,5 +11,7 @@ __pycache__/
 
 **/migrations/
 
+**/media
+
 # Ignore database
 VentasXperts/db.sqlite3
