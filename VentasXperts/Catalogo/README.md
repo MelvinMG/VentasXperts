@@ -91,3 +91,6 @@ http://127.0.0.1:8000/api/catalogo/productos/2/eliminar/
  
 # Informacion de stock general [GET]
 http://127.0.0.1:8000/api/catalogo/productos/reporte_stock/
+
+# Crear informacion del reporte en pdf en proceso (no terminado ) [GET]
+http://127.0.0.1:8000/api/catalogo/productos/reporte_stock_pdf/
