@@ -82,3 +82,10 @@ http://127.0.0.1:8000/api/catalogo/productos/1/modificar/
 
 # Si se quiere eliminar se utiliza el id del producto para eliminar  [DELETE]
 http://127.0.0.1:8000/api/catalogo/productos/2/eliminar/
+
+# Si se quiere buscar el producto por nombre  si es cerial se puede buscar con C [GET]
+ http://127.0.0.1:8000/api/catalogo/productos/buscar_filtrar/?nombre=cereal
+
+# Filtrado por estado de stock suficiente,carente,agotado [GET]
+ http://127.0.0.1:8000/api/catalogo/productos/buscar_filtrar/?estado=suficiente
+ 

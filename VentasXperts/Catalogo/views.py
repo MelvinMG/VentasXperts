@@ -114,6 +114,32 @@ class ProductoViewSet(viewsets.ModelViewSet):
 
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    @action(detail=False, methods=['get'], url_path='buscar_filtrar', permission_classes=[IsAdministradorOrGerente])
+    def buscar_filtrar(self, request):
+        nombre = request.query_params.get('nombre', '')
+        estado = request.query_params.get('estado', '').lower()
+
+        productos = Producto.objects.all()
+
+        if nombre:
+            productos = productos.filter(nombre__icontains=nombre)
+
+        if estado:
+            if estado == 'suficiente':
+                productos = productos.filter(stock_Inventario__gt=models.F('stock_Minimo'))
+            elif estado == 'carente':
+                productos = productos.filter(stock_Inventario__lt=models.F('stock_Minimo'), stock_Inventario__gt=0)
+            elif estado == 'agotado':
+                productos = productos.filter(stock_Inventario=0)
+        
+        if not productos.exists():
+            return Response({'message': 'Producto no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+
+
+        serializer = ProductoSerializer(productos, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 
             
             
