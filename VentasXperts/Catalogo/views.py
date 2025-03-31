@@ -9,6 +9,11 @@ from Catalogo.permissions import IsAdministradorOrGerente
 from Catalogo.serializers import ProductoSerializer, CategoriaSerializer, ProveedorSerializer
 from Administracion.models import *
 
+from django.template.loader import render_to_string
+from xhtml2pdf import pisa
+from io import BytesIO
+from django.http import FileResponse
+
 
 class ProveedorViewSet(viewsets.ModelViewSet):
     queryset = Proveedor.objects.all()
@@ -170,8 +175,33 @@ class ProductoViewSet(viewsets.ModelViewSet):
 
 
 
+    @action(detail=False, methods=['get'], url_path='reporte_stock_pdf', permission_classes=[IsAdministradorOrGerente])
+    def generar_reporte_pdf(self, request):
+        try:
+            suficientes = Producto.objects.filter(stock_Inventario__gt=models.F('stock_Minimo'))
+            carentes = Producto.objects.filter(stock_Inventario__lt=models.F('stock_Minimo'), stock_Inventario__gt=0)
+            agotados = Producto.objects.filter(stock_Inventario=0)
 
-            
-            
-            
+            context = {
+                'total': Producto.objects.count(),
+                'suficientes': suficientes,
+                'carentes': carentes,
+                'agotados': agotados
+            }
+
+            html = render_to_string('reportes/reporte_stock.html', context)
+
+            resultado = BytesIO()
+            print(html)
+            pdf = pisa.pisaDocument(BytesIO(html.encode("UTF-8")), resultado)
+
+            if not pdf.err:
+                return FileResponse(resultado, as_attachment=True, filename="reporte_stock.pdf")
+            else:
+                return Response({'error': 'Error al generar el PDF'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        except Exception as e:
+            return Response({'error': f'Excepción: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
 

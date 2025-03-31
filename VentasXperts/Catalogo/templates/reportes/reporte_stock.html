@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Reporte de Stock</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        h1 { text-align: center; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #444; padding: 6px; text-align: center; font-size: 12px; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <h1>Reporte de Stock de Productos</h1>
+    <p>Total productos: {{ total }}</p>
+
+    <h2>Suficientes ({{ suficientes.count }})</h2>
+    <table>
+        <tr>
+            <th>ID</th><th>Nombre</th><th>Stock</th><th>Mínimo</th>
+        </tr>
+        {% for p in suficientes %}
+        <tr>
+            <td>{{ p.id }}</td>
+            <td>{{ p.nombre }}</td>
+            <td>{{ p.stock_Inventario }}</td>
+            <td>{{ p.stock_Minimo }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <h2>Carentes ({{ carentes.count }})</h2>
+    <table>
+        <tr>
+            <th>ID</th><th>Nombre</th><th>Stock</th><th>Mínimo</th>
+        </tr>
+        {% for p in carentes %}
+        <tr>
+            <td>{{ p.id }}</td>
+            <td>{{ p.nombre }}</td>
+            <td>{{ p.stock_Inventario }}</td>
+            <td>{{ p.stock_Minimo }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <h2>Agotados ({{ agotados.count }})</h2>
+    <table>
+        <tr>
+            <th>ID</th><th>Nombre</th>
+        </tr>
+        {% for p in agotados %}
+        <tr>
+            <td>{{ p.id }}</td>
+            <td>{{ p.nombre }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>
