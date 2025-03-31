@@ -89,3 +89,5 @@ http://127.0.0.1:8000/api/catalogo/productos/2/eliminar/
 # Filtrado por estado de stock suficiente,carente,agotado [GET]
  http://127.0.0.1:8000/api/catalogo/productos/buscar_filtrar/?estado=suficiente
  
+# Informacion de stock general [GET]
+http://127.0.0.1:8000/api/catalogo/productos/reporte_stock/
