@@ -15,16 +15,3 @@ __pycache__/
 
 # Ignore database
 VentasXperts/db.sqlite3
-
-
-# Ignorar todo dentro de media
-media/*
-
-# Excluir la subcarpeta pdf_ticket para que se suba
-!media/pdf_ticket/
-
-# Excluir los archivos dentro de pdf_ticket
-media/pdf_ticket/*
-
-# Permitir archivos dentro de pdf_ticket (si quieres que algunos archivos se suban)
-!media/pdf_ticket/*.pdf
