@@ -139,6 +139,36 @@ class ProductoViewSet(viewsets.ModelViewSet):
 
         serializer = ProductoSerializer(productos, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    
+    
+    @action(detail=False, methods=['get'], url_path='reporte_stock', permission_classes=[IsAdministradorOrGerente])
+    def reporte_stock(self, request):
+        suficientes_qs = Producto.objects.filter(stock_Inventario__gt=models.F('stock_Minimo'))
+        carentes_qs = Producto.objects.filter(stock_Inventario__lt=models.F('stock_Minimo'), stock_Inventario__gt=0)
+        agotados_qs = Producto.objects.filter(stock_Inventario=0)
+
+        serializer_suf = ProductoSerializer(suficientes_qs, many=True)
+        serializer_car = ProductoSerializer(carentes_qs, many=True)
+        serializer_agot = ProductoSerializer(agotados_qs, many=True)
+
+        return Response({
+            "total_productos": Producto.objects.count(),
+            "suficientes": {
+                "cantidad": suficientes_qs.count(),
+                "productos": serializer_suf.data
+            },
+            "carentes": {
+                "cantidad": carentes_qs.count(),
+                "productos": serializer_car.data
+            },
+            "agotados": {
+                "cantidad": agotados_qs.count(),
+                "productos": serializer_agot.data
+            }
+        }, status=status.HTTP_200_OK)
+
+
 
 
             

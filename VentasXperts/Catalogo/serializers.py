@@ -6,6 +6,14 @@ class ProductoSerializer(serializers.ModelSerializer):
         model = Producto
         fields = '__all__'  # O puedes listar solo los campos que quieres exponer
         read_only_fields = ['id', 'created_at', 'updated_at', 'ganancia_pesos', 'ganancia_porcentaje']
+    
+    def get_estado_stock(self, obj):
+        if obj.stock_Inventario == 0:
+            return "Agotado"
+        elif obj.stock_Inventario < obj.stock_Minimo:
+            return "Carente"
+        else:
+            return "Suficiente"
 
 
 
