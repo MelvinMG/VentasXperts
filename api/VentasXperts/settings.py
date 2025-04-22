@@ -16,8 +16,10 @@ SECRET_KEY = 'django-insecure-=we%p#lmja9^kbpu!4pp6em)l_m!ystt&4*l-3j6xuy)64fw&g
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
+# CORS settings para permitir el acceso desde cualquier origen 
+CORS_ALLOW_ALL_ORIGINS = True
 
 # Application definition
 
@@ -30,7 +32,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'Caja',
     'Catalogo',
-    'Administracion' 
+    'Administracion' ,
+    'rest_framework',
+    'corsheaders', # Agregar corsheaders a la lista de aplicaciones instaladas
 ]
 
 MIDDLEWARE = [
@@ -41,6 +45,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware', # Agregar corsheaders middleware a la lista de middlewares para manejar CORS headers
 ]
 
 ROOT_URLCONF = 'VentasXperts.urls'
@@ -70,14 +75,11 @@ WSGI_APPLICATION = 'VentasXperts.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'VentasXpertM',
-        'USER': 'postgres',
-        'PASSWORD': 'asdASD123',
-        'HOST': 'localhost',  # o la dirección IP del servidor
-        'PORT': '5432',       # Puerto predeterminado de PostgreSQL
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
 
 
 # Password validation
