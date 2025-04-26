@@ -2,10 +2,17 @@ package com.app.ventasxpertsmobile.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
-
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
+val AzulPrincipal = Color(0xFF233876)
+val AzulFuerte = Color(0xFF0B0E3F)
+val AzulClaro = Color(0xFF4FA9F3)
+val Amarillo = Color(0xFFFFC107)
+val Verde = Color(0xFF017D06)
+val Rojo = Color(0xFFBA0D01)
+val Blanco1 = Color(0xFFF5F7FA)
+val Blanco2 = Color(0xFFFAFAFA)
+val Gris1 = Color(0xFF666666)
+val Gris2 = Color(0xFFE0E0E0)
+val Gris3 = Color(0xFF2E2E2E)
+val Negro = Color(0xFF212121)
+val TextoInput = Color(0xFF7D7D7D)
+val FondoInput = Color(0xFFE9EFEC)

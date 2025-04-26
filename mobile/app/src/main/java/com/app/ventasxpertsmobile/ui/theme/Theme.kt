@@ -11,27 +11,101 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 
+
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import com.app.ventasxpertsmobile.R
+import androidx.compose.material3.Typography
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.sp
+
+
+
 private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+    primary = AzulPrincipal,
+    secondary = AzulClaro,
+    tertiary = Verde,
+    background = Negro,
+    surface = Gris3,
+    onPrimary = Blanco1,
+    onSecondary = Blanco1,
+    onTertiary = Blanco1,
+    onBackground = Blanco1,
+    onSurface = Blanco1
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+    primary = AzulPrincipal,
+    secondary = AzulClaro,
+    tertiary = Verde,
+    background = Blanco1,
+    surface = Blanco2,
+    onPrimary = Blanco1,
+    onSecondary = AzulPrincipal,
+    onTertiary = AzulPrincipal,
+    onBackground = AzulPrincipal,
+    onSurface = AzulPrincipal
 )
+
+
+val OpenSans = FontFamily(
+    Font(R.font.opensans_regular, FontWeight.Normal),
+    Font(R.font.opensans_bold, FontWeight.Bold),
+    Font(R.font.opensans_semibold, FontWeight.SemiBold)
+)
+
+
+val AppTypography = Typography(
+    displayLarge = TextStyle(
+        fontFamily = OpenSans,
+        fontWeight = FontWeight.Bold,
+        fontSize = 32.sp
+    ),
+    displayMedium = TextStyle(
+        fontFamily = OpenSans,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 24.sp
+    ),
+    displaySmall = TextStyle(
+        fontFamily = OpenSans,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 20.sp
+    ),
+    headlineLarge = TextStyle(
+        fontFamily = OpenSans,
+        fontWeight = FontWeight.Bold,
+        fontSize = 22.sp
+    ),
+    headlineMedium = TextStyle(
+        fontFamily = OpenSans,
+        fontWeight = FontWeight.Medium,
+        fontSize = 20.sp
+    ),
+    titleMedium = TextStyle(
+        fontFamily = OpenSans,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 18.sp
+    ),
+    bodyLarge = TextStyle(
+        fontFamily = OpenSans,
+        fontWeight = FontWeight.Normal,
+        fontSize = 16.sp
+    ),
+    bodyMedium = TextStyle(
+        fontFamily = OpenSans,
+        fontWeight = FontWeight.Normal,
+        fontSize = 14.sp
+    ),
+    labelLarge = TextStyle(
+        fontFamily = OpenSans,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 14.sp
+    )
+)
+
+
+
 
 @Composable
 fun VentasXpertsMobileTheme(
@@ -52,7 +126,7 @@ fun VentasXpertsMobileTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = Typography,
+        typography = AppTypography,
         content = content
     )
 }
