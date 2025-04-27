@@ -1,7 +1,5 @@
 package com.app.ventasxpertsmobile.ui.login
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -14,18 +12,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.app.ventasxpertsmobile.R
 import com.app.ventasxpertsmobile.ui.theme.*
-import androidx.compose.ui.tooling.preview.Preview
+
 @Composable
 fun LoginForm(
-    onLoginClick: (String, String) -> Unit = { _, _ -> }
+    onLoginClick: (String, String) -> Unit = { _, _ -> },
+    onLoginSuccess: () -> Unit
 ) {
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -108,7 +104,8 @@ fun LoginForm(
             Spacer(modifier = Modifier.height(18.dp))
 
             Button(
-                onClick = { onLoginClick(username, password) },
+                onClick = { onLoginClick(username, password)
+                            onLoginSuccess()},
                 colors = ButtonDefaults.buttonColors(
                     containerColor = AzulPrincipal,
                     contentColor = Color.White
