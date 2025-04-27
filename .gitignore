@@ -14,4 +14,8 @@ __pycache__/
 
 
 # Ignore database
-VentasXperts/db.sqlite3
+api/db.sqlite3
+
+# Ignorar cualquier archivo ZIP o RAR en cualquier carpeta
+*.zip
+*.rar
