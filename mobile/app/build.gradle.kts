@@ -60,6 +60,13 @@ dependencies {
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
     implementation(libs.font.awesome)
+    //Dependencias de Pablo
+    implementation(libs.coil.compose)
+    implementation(libs.androidx.material.icons.extended)
+    implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.material.icons.extended)
+
+
 
 
 

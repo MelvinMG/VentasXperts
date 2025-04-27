@@ -1,4 +1,7 @@
 package com.app.ventasxpertsmobile.ui.templates
+import com.app.ventasxpertsmobile.ui.navigation.NavigationItem
+
+
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
@@ -7,6 +10,8 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.filled.Book
+
 import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material.icons.filled.Settings
 
@@ -203,41 +208,40 @@ fun BaseScreen(
 
                     NavigationDrawerItem(
                         label = { Text("Usuarios") },
-                        selected = selectedItem.value == "Usuarios",
+                        selected = selectedItem.value == NavigationItem.Usuarios.label,
                         onClick = {
-                            selectedItem.value = "Usuarios"
-                            onNavigationSelected("Usuarios")
+                            selectedItem.value = NavigationItem.Usuarios.label
+                            onNavigationSelected(NavigationItem.Usuarios.route)
                             scope.launch { drawerState.close() }
                         },
                         icon = {
                             Icon(
                                 imageVector = FontAwesomeIcons.Solid.UserLock,
-                                contentDescription = "Users",
+                                contentDescription = "Usuarios",
                                 modifier = Modifier.size(24.dp)
                             )
                         },
                         modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                     )
 
-
-
                     NavigationDrawerItem(
                         label = { Text("Bitácora") },
-                        selected = selectedItem.value == "Bitácora",
+                        selected = selectedItem.value == NavigationItem.Bitacora.label,
                         onClick = {
-                            selectedItem.value = "Bitácora"
-                            onNavigationSelected("Bitácora")
+                            selectedItem.value = NavigationItem.Bitacora.label
+                            onNavigationSelected(NavigationItem.Bitacora.route)
                             scope.launch { drawerState.close() }
                         },
                         icon = {
                             Icon(
-                                imageVector = FontAwesomeIcons.Solid.Boxes, // Puedes elegir otro icono de FontAwesome
+                                imageVector = Icons.Filled.Book,
                                 contentDescription = "Bitácora",
                                 modifier = Modifier.size(24.dp)
                             )
                         },
                         modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                     )
+
 
 
 

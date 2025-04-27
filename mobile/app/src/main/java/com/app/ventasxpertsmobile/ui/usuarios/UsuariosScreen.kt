@@ -50,7 +50,8 @@ val usuariosDemo = List(8) {
 fun UsuariosScreen(
     onLogout: () -> Unit = {},
     onNavigationSelected: (String) -> Unit = {},
-    onVerDetalles: (Int) -> Unit
+    onVerDetalles: (Int) -> Unit,
+    onAniadirUsuario: () -> Unit
 ) {
     var modoMosaico by remember { mutableStateOf(false) }
     var query by remember { mutableStateOf("") }
@@ -109,7 +110,7 @@ fun UsuariosScreen(
                     textStyle = MaterialTheme.typography.bodyMedium.copy(color = TextoInput)
                 )
                 Spacer(Modifier.width(8.dp))
-                IconButton(onClick = { /* Acción agregar usuario */ }) {
+                IconButton(onClick = { onAniadirUsuario()  }) {
                     Icon(
                         imageVector = FontAwesomeIcons.Solid.UserPlus,
                         contentDescription = "Agregar usuario",
@@ -360,5 +361,5 @@ fun UsuarioCardMosaico(usuario: Usuario, onVerDetalles: (Int) -> Unit) {
 @Preview(showBackground = true)
 @Composable
 fun PreviewUsuariosScreen() {
-    UsuariosScreen(onVerDetalles = {})
+    UsuariosScreen(onVerDetalles = {}, onAniadirUsuario = {})
 }

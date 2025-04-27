@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ExitToApp
@@ -27,9 +28,10 @@ data class DrawerItem(
 )
 
 val drawerItems = listOf(
-    DrawerItem("Usuarios",{ Icon(Icons.Filled.Person, contentDescription = "Usuarios") },"usuarios")
+    DrawerItem("Usuarios",{ Icon(Icons.Filled.Person, contentDescription = "Usuarios") },"usuarios"),
+
+    DrawerItem("Bitácora", { Icon(Icons.Filled.Book, contentDescription = "Bitácora") }, "bitacora"),
     // para mas
-    //DrawerItem("Bitácora", { Icon(Icons.Filled.List, contentDescription = "Bitácora") }, "bitacora"),
 )
 
 @Composable
@@ -76,7 +78,7 @@ fun NavDrawer(
                     Icon(Icons.Filled.Close, contentDescription = "Cerrar menú", tint = Color.Gray)
                 }
             }
-            Divider(thickness = 1.dp, color = Color(0xFFE0E0E0))
+            HorizontalDivider( thickness = 1.dp, color = Color(0xFFE0E0E0))
             Spacer(modifier = Modifier.height(8.dp))
 
             // Menú

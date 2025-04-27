@@ -8,7 +8,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.app.ventasxpertsmobile.ui.usuarios.UsuariosScreen
 import com.app.ventasxpertsmobile.ui.usuarios.DetalleUsuarioScreen
-
+import com.app.ventasxpertsmobile.ui.usuarios.CrearUsuarioScreen
+import com.app.ventasxpertsmobile.ui.bitacora.BitacoraScreen
 @Composable
 fun AppNavHost(
     navController: NavHostController,
@@ -26,6 +27,9 @@ fun AppNavHost(
                 },
                 onVerDetalles = { userId ->
                     navController.navigate("detalle_usuario/$userId")
+                },
+                onAniadirUsuario = {
+                    navController.navigate("aniadir_usuario")
                 }
             )
         }
@@ -33,14 +37,26 @@ fun AppNavHost(
             "detalle_usuario/{userId}",
             arguments = listOf(navArgument("userId") { type = NavType.IntType })
         ) { backStackEntry ->
-            val userId = backStackEntry.arguments?.getInt("userId")
+            val userId = backStackEntry.arguments?.getInt("userId") ?: 0
             DetalleUsuarioScreen(
                 userId = userId,
                 onLogout = onLogout,
                 onNavigationSelected = { route -> navController.navigate(route) }
             )
         }
-
-        // Más pantallas aquí...
+        composable("aniadir_usuario") {
+            CrearUsuarioScreen(
+                onLogout = onLogout,
+                onNavigationSelected = { route -> navController.navigate(route)}
+            )
+        }
+        composable(NavigationItem.Bitacora.route) {
+            BitacoraScreen(
+                onLogout = onLogout,
+                onNavigationSelected = { route -> navController.navigate(route) }
+            )
+        }
+        // ...más pantallas
     }
 }
+
