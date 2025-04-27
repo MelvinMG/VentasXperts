@@ -10,6 +10,7 @@ import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material3.*
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -111,7 +112,7 @@ fun NavDrawer(
                 Spacer(modifier = Modifier.height(2.dp))
             }
 
-            Divider(
+            HorizontalDivider(
                 modifier = Modifier.padding(vertical = 10.dp, horizontal = 12.dp),
                 thickness = 1.dp, color = Color(0xFFE0E0E0)
             )

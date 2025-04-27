@@ -17,12 +17,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.app.ventasxpertsmobile.ui.templates.BaseScreen
 import com.app.ventasxpertsmobile.ui.theme.*
-
 import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.solid.Filter
@@ -30,9 +29,12 @@ import compose.icons.fontawesomeicons.solid.Users
 import compose.icons.fontawesomeicons.solid.ThList
 import compose.icons.fontawesomeicons.solid.ThLarge
 import compose.icons.fontawesomeicons.solid.Search
+import compose.icons.fontawesomeicons.solid.UserPlus
+import compose.icons.fontawesomeicons.solid.UserEdit
 
 // Demo data class
 data class Usuario(
+    val id: Int,
     val nombre: String,
     val rol: String,
     val fecha: String,
@@ -41,13 +43,14 @@ data class Usuario(
 
 // Datos demo
 val usuariosDemo = List(8) {
-    Usuario("Nombre de Usuario", "Administrador", "##-##-## HH:MM")
+    Usuario(it, "Nombre de Usuario", "Administrador", "##-##-## HH:MM")
 }
 
 @Composable
 fun UsuariosScreen(
     onLogout: () -> Unit = {},
-    onNavigationSelected: (String) -> Unit = {}
+    onNavigationSelected: (String) -> Unit = {},
+    onVerDetalles: (Int) -> Unit
 ) {
     var modoMosaico by remember { mutableStateOf(false) }
     var query by remember { mutableStateOf("") }
@@ -96,7 +99,7 @@ fun UsuariosScreen(
                     },
                     modifier = Modifier
                         .weight(1f)
-                        .heightIn(min=40.dp),
+                        .heightIn(min = 40.dp),
                     shape = RoundedCornerShape(8.dp),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = AzulPrincipal,
@@ -106,10 +109,10 @@ fun UsuariosScreen(
                     textStyle = MaterialTheme.typography.bodyMedium.copy(color = TextoInput)
                 )
                 Spacer(Modifier.width(8.dp))
-                IconButton(onClick = { /* Aquí iría la acción de usuarios */ }) {
+                IconButton(onClick = { /* Acción agregar usuario */ }) {
                     Icon(
-                        FontAwesomeIcons.Solid.Users,
-                        contentDescription = null,
+                        imageVector = FontAwesomeIcons.Solid.UserPlus,
+                        contentDescription = "Agregar usuario",
                         tint = AzulPrincipal,
                         modifier = Modifier.size(22.dp)
                     )
@@ -197,7 +200,7 @@ fun UsuariosScreen(
                     contentPadding = PaddingValues(4.dp)
                 ) {
                     items(usuarios.size) { idx ->
-                        UsuarioCardMosaico(usuario = usuarios[idx])
+                        UsuarioCardMosaico(usuario = usuarios[idx], onVerDetalles = onVerDetalles)
                     }
                 }
             } else {
@@ -206,7 +209,7 @@ fun UsuariosScreen(
                     modifier = Modifier.fillMaxSize()
                 ) {
                     items(usuarios) { usuario ->
-                        UsuarioCardLista(usuario)
+                        UsuarioCardLista(usuario, onVerDetalles)
                     }
                 }
             }
@@ -217,7 +220,7 @@ fun UsuariosScreen(
 // ---- COMPONENTES ----
 
 @Composable
-fun UsuarioCardLista(usuario: Usuario) {
+fun UsuarioCardLista(usuario: Usuario, onVerDetalles: (Int) -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -250,15 +253,15 @@ fun UsuarioCardLista(usuario: Usuario) {
                 )
             }
             Button(
-                onClick = { /* TODO: Ver detalles */ },
+                onClick = { onVerDetalles(usuario.id) },
                 colors = ButtonDefaults.buttonColors(containerColor = AzulPrincipal),
                 shape = RoundedCornerShape(14.dp)
             ) {
                 Text("Ver Detalles", style = MaterialTheme.typography.bodyMedium, color = Blanco1)
                 Spacer(Modifier.width(6.dp))
                 Icon(
-                    FontAwesomeIcons.Solid.Users,
-                    contentDescription = null,
+                    imageVector = FontAwesomeIcons.Solid.UserEdit,
+                    contentDescription = "Ver Detalles",
                     modifier = Modifier.size(18.dp),
                     tint = Blanco1
                 )
@@ -273,7 +276,7 @@ fun UsuarioCardLista(usuario: Usuario) {
 }
 
 @Composable
-fun UsuarioCardMosaico(usuario: Usuario) {
+fun UsuarioCardMosaico(usuario: Usuario, onVerDetalles: (Int) -> Unit) {
     Card(
         modifier = Modifier
             .padding(8.dp)
@@ -336,15 +339,15 @@ fun UsuarioCardMosaico(usuario: Usuario) {
                     )
                 }
                 Button(
-                    onClick = { /* Acción Ver Detalles */ },
+                    onClick = { onVerDetalles(usuario.id) },
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = AzulPrincipal),
                     contentPadding = PaddingValues(0.dp),
                     modifier = Modifier.size(30.dp)
                 ) {
                     Icon(
-                        imageVector = FontAwesomeIcons.Solid.Users,
-                        contentDescription = null,
+                        imageVector = FontAwesomeIcons.Solid.UserEdit,
+                        contentDescription = "Ver Detalles",
                         tint = Blanco1,
                         modifier = Modifier.size(18.dp)
                     )
@@ -357,5 +360,5 @@ fun UsuarioCardMosaico(usuario: Usuario) {
 @Preview(showBackground = true)
 @Composable
 fun PreviewUsuariosScreen() {
-    UsuariosScreen()
+    UsuariosScreen(onVerDetalles = {})
 }
