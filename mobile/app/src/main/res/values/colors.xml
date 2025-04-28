@@ -24,4 +24,7 @@
     <color name="negro">#212121</color>
     <color name="texto_input">#7D7D7D</color>
     <color name="fondo_input">#E9EFEC</color>
+    <color name="BlueStrong">#233876</color>
+    <color name="RedStrong">#BA0D01</color>
+    <color name="GreenStrong">#017D06</color>"
 </resources>
