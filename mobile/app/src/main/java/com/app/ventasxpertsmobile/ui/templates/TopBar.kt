@@ -164,7 +164,8 @@ fun BaseScreen(
                         icon = {
                             Icon(
                                 imageVector = Icons.Outlined.ShoppingCart,
-                                contentDescription = null
+                                contentDescription = "Caja",
+                                modifier = Modifier.size(24.dp)
                             )
                         },
                         modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
