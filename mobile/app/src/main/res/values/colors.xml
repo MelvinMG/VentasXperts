@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#000000</color>
+    <color name="white">#FFFFFF</color>
+    <!-- Colores Material originales -->
+    <color name="purple_200">#BB86FC</color>
+    <color name="purple_500">#6200EE</color>
+    <color name="purple_700">#3700B3</color>
+    <color name="teal_200">#03DAC5</color>
+    <color name="teal_700">#018786</color>
+
+    <!-- Tus colores personalizados -->
+    <color name="azul_principal">#233876</color>
+    <color name="azul_secundario">#0B0E3F</color>
+    <color name="celeste_secundario">#4FA9F3</color>
+    <color name="amarillo">#FFC107</color>
+    <color name="verde">#017D06</color>
+    <color name="rojo">#BA0D01</color>
+    <color name="blanco1">#F5F7FA</color>
+    <color name="blanco2">#FAFAFA</color>
+    <color name="gris1">#666666</color>
+    <color name="gris2">#E0E0E0</color>
+    <color name="gris3">#2E2E2E</color>
+    <color name="negro">#212121</color>
+    <color name="texto_input">#7D7D7D</color>
+    <color name="fondo_input">#E9EFEC</color>
+</resources>
