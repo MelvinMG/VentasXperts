@@ -69,20 +69,16 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'VentasXperts.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'VentasXpertM',
-        'USER': 'postgres',
-        'PASSWORD': 'asdASD123',
-        'HOST': 'localhost',  # o la dirección IP del servidor
-        'PORT': '5432',       # Puerto predeterminado de PostgreSQL
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
 
 
 
