@@ -139,8 +139,8 @@ fun BaseScreen(
                         label = { Text("Catalogo") },
                         selected = selectedItem.value == "Catalogo",
                         onClick = {
-                            selectedItem.value = "Catalogo"
-                            onNavigationSelected("Catalogo")
+                            selectedItem.value = NavigationItem.Catalogo.label
+                            onNavigationSelected(NavigationItem.Catalogo.route)
                             scope.launch { drawerState.close() }
                         },
                         icon = {
@@ -157,8 +157,8 @@ fun BaseScreen(
                         label = { Text("Caja") },
                         selected = selectedItem.value == "Caja",
                         onClick = {
-                            selectedItem.value = "Caja"
-                            onNavigationSelected("Caja")
+                            selectedItem.value = NavigationItem.Caja.label
+                            onNavigationSelected(NavigationItem.Caja.route)
                             scope.launch { drawerState.close() }
                         },
                         icon = {
@@ -193,8 +193,8 @@ fun BaseScreen(
                         label = { Text("Proveedores") },
                         selected = selectedItem.value == "Proveedores",
                         onClick = {
-                            selectedItem.value = "Proveedores"
-                            onNavigationSelected("Proveedores")
+                            selectedItem.value = NavigationItem.Proveedor.label
+                            onNavigationSelected(NavigationItem.Proveedor.route)
                             scope.launch { drawerState.close() }
                         },
                         icon = {

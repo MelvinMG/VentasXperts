@@ -16,6 +16,8 @@ import com.app.ventasxpertsmobile.ui.caja.HistorialTicketsScreen
 import com.app.ventasxpertsmobile.ui.catalogo.TiendasCatalogoScreen
 import com.app.ventasxpertsmobile.ui.catalogo.TiendaProductosScreen
 
+import com.app.ventasxpertsmobile.ui.proveedor.ProveedorScreen
+import com.app.ventasxpertsmobile.ui.proveedor.DetalleProveedorScreen
 @Composable
 fun AppNavHost(
     navController: NavHostController,
@@ -88,6 +90,27 @@ fun AppNavHost(
         }
         composable("info_tienda"){
             TiendaProductosScreen(
+                onLogout = onLogout,
+                onNavigationSelected = { route -> navController.navigate(route) }
+            )
+        }
+
+        composable(NavigationItem.Proveedor.route) {
+            ProveedorScreen(
+                onLogout = onLogout,
+                onNavigationSelected = { route ->
+                    navController.navigate(route)
+                },
+                onVerDetalles = { proveedorId ->
+                    navController.navigate("detalle_proveedor/$proveedorId")
+                },
+
+            )
+        }
+        composable("detalle_proveedor/{proveedorId}", arguments = listOf(navArgument("proveedorId") { type = NavType.IntType })) { backStackEntry ->
+            val proveedorId = backStackEntry.arguments?.getInt("proveedorId") ?: 0
+            DetalleProveedorScreen(
+                proveedorId = proveedorId,
                 onLogout = onLogout,
                 onNavigationSelected = { route -> navController.navigate(route) }
             )
