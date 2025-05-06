@@ -176,7 +176,7 @@ fun BaseScreen(
                         selected = selectedItem.value == "Inventario",
                         onClick = {
                             selectedItem.value = "Inventario"
-                            onNavigationSelected("Inventario")
+                            onNavigationSelected(NavigationItem.Inventario.route)
                             scope.launch { drawerState.close() }
                         },
                         icon = {
