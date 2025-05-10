@@ -14,22 +14,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import com.app.ventasxpertsmobile.ui.templates.BaseScreen
+import androidx.compose.ui.tooling.preview.Preview
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditarProductoScreen(
     nombreProducto: String = "Nombre del producto",
     onCancel: () -> Unit = {},
-    onCreate: () -> Unit = {}
+    onCreate: () -> Unit = {},
+    onLogout: () -> Unit = {},
+    onNavigationSelected: (String) -> Unit = {}
 ) {
-    Scaffold(
-        topBar = { InventarioTopBar() },
-        containerColor = Color(0xFFF9F9F9)
+    BaseScreen(
+        title = "Editar producto",
+        onLogout = onLogout,
+        onNavigationSelected = onNavigationSelected
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -78,7 +80,6 @@ fun EditarProductoScreen(
 
                 var codigo by remember { mutableStateOf("") }
                 var nombre by remember { mutableStateOf("") }
-                var showNombre by remember { mutableStateOf(false) }
                 var categoria by remember { mutableStateOf("Categoría") }
                 val categorias = listOf("Categoría", "Refresco", "Lácteos", "Cereales", "Botanas", "Otros")
                 var expandedCategoria by remember { mutableStateOf(false) }
@@ -105,8 +106,7 @@ fun EditarProductoScreen(
                         .fillMaxWidth()
                         .padding(vertical = 4.dp),
                     singleLine = true,
-
-                    )
+                )
 
                 Box(
                     modifier = Modifier
@@ -220,34 +220,6 @@ fun EditarProductoScreen(
             }
         }
     }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun InventarioTopBar() {
-    TopAppBar(
-        title = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Filled.ShoppingCart, contentDescription = null)
-                Spacer(modifier = Modifier.width(6.dp))
-                Text(
-                    "Gestión de inventario",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-        },
-        navigationIcon = {
-            IconButton(onClick = { /* TODO: Abrir menú */ }) {
-                Icon(Icons.Filled.Menu, contentDescription = "Menú")
-            }
-        },
-        actions = {
-            IconButton(onClick = { /* TODO: Más opciones */ }) {
-                Icon(Icons.Filled.MoreVert, contentDescription = "Más opciones")
-            }
-        }
-    )
 }
 
 @Preview(showBackground = true)
