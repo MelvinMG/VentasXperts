@@ -150,7 +150,8 @@ fun AppNavHost(
             EditarProductoScreen(
                 nombreProducto = nombreProducto,
                 onCancel = { navController.popBackStack() },
-                onCreate = { navController.popBackStack() }
+                onCreate = { navController.popBackStack() },
+                navController = navController
             )
         }
 
