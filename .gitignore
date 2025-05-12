@@ -3,8 +3,6 @@ venv/
 .venv/
 env/
 
-
-
 # Ignorar todos los archivos dentro de 'migrations'
 **/migrations/*
 
