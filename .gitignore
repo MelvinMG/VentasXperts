@@ -3,13 +3,14 @@ venv/
 .venv/
 env/
 
-# Ignore Django migration files
-*.pyc
-*.pyo
-__pycache__/
-*.log
 
-**/migrations/
+
+# Ignorar todos los archivos dentro de 'migrations'
+**/migrations/*
+
+# No ignorar estos archivos específicos
+!**/migrations/__init__.py
+!**/migrations/__pycache__/
 
 # Ignore database
 api/db.sqlite3

@@ -2,7 +2,7 @@
 import os
 from pathlib import Path
 from django.contrib.messages import constants as message_constants
-
+from datetime import timedelta
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -18,9 +18,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
-# CORS settings para permitir el acceso desde cualquier origen 
-CORS_ALLOW_ALL_ORIGINS = True
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -35,17 +32,19 @@ INSTALLED_APPS = [
     'Administracion' ,
     'rest_framework',
     'corsheaders', # Agregar corsheaders a la lista de aplicaciones instaladas
+    'rest_framework_simplejwt', # Agregar rest_framework_simplejwt para autenticación JWT
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware', # Agregar corsheaders middleware a la lista de middlewares para manejar CORS headers
+    
 ]
 
 ROOT_URLCONF = 'VentasXperts.urls'
@@ -121,13 +120,21 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Paginacion automatica
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 REST_FRAMEWORK = {
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination', # Clase de paginación
-    'PAGE_SIZE': 50 # Cantidad de elementos por página
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10,  # Puedes ajustar este valor según tus necesidades
 }
 
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30), 
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'AUTH_HEADER_TYPES': ('Bearer',),
+}
 
 
 # Configuracion de Mensajes 

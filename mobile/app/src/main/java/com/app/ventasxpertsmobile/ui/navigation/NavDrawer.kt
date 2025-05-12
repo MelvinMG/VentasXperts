@@ -9,7 +9,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material3.*
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.*
@@ -20,6 +20,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.app.ventasxpertsmobile.ui.theme.AzulPrincipal
+import androidx.compose.ui.platform.LocalContext
+
+import com.app.ventasxpertsmobile.data.network.RetrofitClient
+
+
 
 data class DrawerItem(
     val label: String,
@@ -41,6 +46,7 @@ fun NavDrawer(
     onLogout: () -> Unit,
     onClose: () -> Unit
 ) {
+    val context = LocalContext.current
     Surface(
         shape = RoundedCornerShape(topEnd = 24.dp, bottomEnd = 24.dp),
         shadowElevation = 6.dp,
@@ -126,10 +132,13 @@ fun NavDrawer(
                     .fillMaxWidth()
                     .padding(horizontal = 12.dp)
                     .height(48.dp)
-                    .clickable { onLogout() }
+                    .clickable {
+                        RetrofitClient.logout(context) // borra el token local
+                        onLogout()
+                    }
             ) {
                 Icon(
-                    Icons.Filled.ExitToApp,
+                    Icons.AutoMirrored.Filled.ExitToApp,
                     contentDescription = "Cerrar sesión",
                     tint = Color(0xFF212121),
                     modifier = Modifier.size(28.dp)

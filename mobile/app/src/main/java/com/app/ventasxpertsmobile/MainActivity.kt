@@ -15,12 +15,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import com.app.ventasxpertsmobile.ui.navigation.NavDrawer
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.app.ventasxpertsmobile.data.network.RetrofitClient
 import kotlinx.coroutines.launch
 
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        RetrofitClient.initialize(applicationContext)
         setContent {
             VentasXpertsMobileTheme {
                 var isLoggedIn by remember { mutableStateOf(false) }
