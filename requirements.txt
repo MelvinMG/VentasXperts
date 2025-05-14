@@ -4,3 +4,6 @@ django-cors-headers==4.7.0
 # Requerimientos caja
 xhtml2pdf==0.2.17
 weasyprint==65.0
+# Conexion a Android con tokens
+djangorestframework_simplejwt==5.5.0
+djangorestframework ==3.15.2
