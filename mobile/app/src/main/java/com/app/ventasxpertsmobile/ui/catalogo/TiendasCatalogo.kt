@@ -8,31 +8,32 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.app.ventasxpertsmobile.ui.templates.BaseScreen
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.runtime.getValue
+
+
+// modelo tienda
+import com.app.ventasxpertsmobile.data.model.Tienda
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TiendasCatalogoScreen(
     onLogout: () -> Unit = {},
-    onNavigationSelected: (String) -> Unit = {}
+    onNavigationSelected: (String) -> Unit = {} ,
+    viewModel: CatalogoViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
-    val tiendas = listOf(
-        Tienda("Tienda 1", "Descripción simple de la tienda"),
-        Tienda("Tienda 2", "Descripción simple de la tienda"),
-        Tienda("Tienda 3", "Descripción simple de la tienda"),
-        Tienda("Tienda 4", "Descripción simple de la tienda"),
-        Tienda("Tienda 5", "Descripción simple de la tienda"),
-        Tienda("Tienda 6", "Descripción simple de la tienda"),
-        Tienda("Tienda 7", "Descripción simple de la tienda"),
-        Tienda("Tienda 8", "Descripción simple de la tienda"),
-        Tienda("Tienda 9", "Descripción simple de la tienda"),
-        Tienda("Tienda 10", "Descripción simple de la tienda")
-    )
+    val tiendas by viewModel.tiendas.collectAsStateWithLifecycle()
+    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
+    val error by viewModel.error.collectAsStateWithLifecycle()
+
 
     BaseScreen(
         title = "Tiendas",
@@ -48,12 +49,28 @@ fun TiendasCatalogoScreen(
                     .padding(scaffoldPadding)
                     .padding(horizontal = 16.dp)
             ) {
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    items(tiendas) { tienda ->
-                        TiendaItem(tienda = tienda, onNavigate = onNavigationSelected)
+                when {
+                    isLoading -> {
+                        CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
+                    }
+
+                    error != null -> {
+                        Text(
+                            text = error ?: "Error desconocido",
+                            color = Color.Red,
+                            modifier = Modifier.align(Alignment.CenterHorizontally)
+                        )
+                    }
+
+                    else -> {
+                        LazyColumn(
+                            verticalArrangement = Arrangement.spacedBy(12.dp),
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            items(tiendas) { tienda ->
+                                TiendaItem(tienda = tienda, onNavigate = onNavigationSelected)
+                            }
+                        }
                     }
                 }
             }
@@ -92,5 +109,3 @@ fun TiendaItem(tienda: Tienda, onNavigate: (String) -> Unit = {}) {
         }
     }
 }
-
-data class Tienda(val nombre: String, val descripcion: String)
