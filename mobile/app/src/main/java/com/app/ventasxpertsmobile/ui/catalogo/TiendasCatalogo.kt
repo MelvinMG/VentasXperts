@@ -28,6 +28,7 @@ import com.app.ventasxpertsmobile.data.model.Tienda
 fun TiendasCatalogoScreen(
     onLogout: () -> Unit = {},
     onNavigationSelected: (String) -> Unit = {} ,
+    onTiendaSelected: (Tienda) -> Unit,
     viewModel: CatalogoViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
     val tiendas by viewModel.tiendas.collectAsStateWithLifecycle()
@@ -68,7 +69,7 @@ fun TiendasCatalogoScreen(
                             modifier = Modifier.fillMaxSize()
                         ) {
                             items(tiendas) { tienda ->
-                                TiendaItem(tienda = tienda, onNavigate = onNavigationSelected)
+                                TiendaItem(tienda = tienda)
                             }
                         }
                     }
@@ -79,17 +80,14 @@ fun TiendasCatalogoScreen(
 }
 
 @Composable
-fun TiendaItem(tienda: Tienda, onNavigate: (String) -> Unit = {}) {
+fun TiendaItem(tienda: Tienda) {
     Card(
         modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onNavigate("info_tienda") },
+            .fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = Color(0xFFF2F2F2))
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -97,15 +95,12 @@ fun TiendaItem(tienda: Tienda, onNavigate: (String) -> Unit = {}) {
                 Text(tienda.nombre, style = MaterialTheme.typography.titleMedium)
                 Text(tienda.descripcion, fontSize = 13.sp, color = Color.DarkGray)
             }
-
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Icon(
-                    imageVector = Icons.Default.ShoppingBag,
-                    contentDescription = "Producto",
-                    tint = Color.Gray,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
+            Icon(
+                imageVector = Icons.Default.ShoppingBag,
+                contentDescription = "Producto",
+                tint = Color.Gray,
+                modifier = Modifier.size(24.dp)
+            )
         }
     }
 }

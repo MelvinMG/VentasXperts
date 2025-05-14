@@ -6,6 +6,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.app.ventasxpertsmobile.data.model.Tienda
 import com.app.ventasxpertsmobile.ui.usuarios.UsuariosScreen
 import com.app.ventasxpertsmobile.ui.usuarios.DetalleUsuarioScreen
 import com.app.ventasxpertsmobile.ui.usuarios.CrearUsuarioScreen
@@ -86,18 +87,31 @@ fun AppNavHost(
                 onNavigationSelected = { route -> navController.navigate(route) }
             )
         }
-        composable("catalogo"){
+        composable(route = "catalogo") {
             TiendasCatalogoScreen(
                 onLogout = onLogout,
-                onNavigationSelected = { route -> navController.navigate(route) }
+                onNavigationSelected = { route -> navController.navigate(route) },
+
+                // Aquí pasas la función para que navegue con el id de la tienda
+                onTiendaSelected = { tienda ->
+                    navController.navigate("info_tienda/${tienda.id}")
+                }
             )
         }
-        composable("info_tienda"){
+        composable(
+            route = "info_tienda/{tiendaId}",
+            arguments = listOf(navArgument("tiendaId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val tiendaId = backStackEntry.arguments?.getInt("tiendaId") ?: 0
+
+            // Pasamos el id al ViewModel para obtener la tienda
             TiendaProductosScreen(
+                tiendaId = tiendaId,
                 onLogout = onLogout,
                 onNavigationSelected = { route -> navController.navigate(route) }
             )
         }
+
 
         composable(NavigationItem.Proveedor.route) {
             ProveedorScreen(

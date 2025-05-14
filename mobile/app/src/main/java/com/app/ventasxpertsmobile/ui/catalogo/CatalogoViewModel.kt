@@ -53,4 +53,10 @@ class CatalogoViewModel : ViewModel() {
             }
         })
     }
+
+    fun getTiendaById(id: Int): Tienda? {
+        return _tiendas.value.find { it.id == id }
+    }
+
+
 }
