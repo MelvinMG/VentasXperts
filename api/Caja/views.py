@@ -82,32 +82,26 @@ class UserViewSet(viewsets.ViewSet):
 class CajaViewSet(viewsets.ModelViewSet):
     queryset = Caja.objects.all()
     serializer_class = CajaSerializer
-    permission_classes = [IsCajero]
 
 class ProductoViewSet(viewsets.ModelViewSet):
     queryset = Producto.objects.all()
     serializer_class = ProductoSerializer
-    permission_classes = [IsCajero]
     
 class CategoriaViewSet(viewsets.ModelViewSet):
     queryset = Categoria.objects.all()
     serializer_class = CategoriaSerializer
-    permission_classes = [IsCajero]
     
 class ProveedorViewSet(viewsets.ModelViewSet):
     queryset = Proveedor.objects.all()
     serializer_class = ProveedorSerializer
-    permission_classes = [IsCajero]
     
 class carritoViewSet(viewsets.ModelViewSet):
     queryset = Carrito.objects.all()
     serializer_class = CarritoSerializer
-    permission_classes = [IsCajero]
     
 class CarritoProductoViewSet(viewsets.ModelViewSet):
     queryset = CarritoProducto.objects.select_related('producto').all()
     serializer_class = CarritoProductoSerializer
-    permission_classes = [IsCajero]
 
     @action(detail=True, methods=['post'])
     def agregar(self, request, pk=None):
@@ -150,7 +144,6 @@ class CarritoProductoViewSet(viewsets.ModelViewSet):
 class VentaViewSet(viewsets.ModelViewSet):
     queryset = Venta.objects.all()
     serializer_class = VentaSerializer
-    permission_classes = [IsCajero]
 
     @action(detail=False, methods=['post'])
     def procesar_venta(self, request):
@@ -196,7 +189,6 @@ class VentaViewSet(viewsets.ModelViewSet):
 
 
 class TicketViewSet(viewsets.ViewSet):
-    permission_classes = [IsCajero]
     
     @action(detail=False, methods=['get'])
     def historial(self, request):

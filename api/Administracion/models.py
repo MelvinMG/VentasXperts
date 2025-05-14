@@ -84,6 +84,26 @@ class Producto(models.Model):
     class Meta:
         db_table = 'Producto'
         verbose_name_plural = 'Productos'
+        
+#? Tabla de tiendas con una relacion uno a muchos con la tabla de productos
+class Tienda(models.Model):
+    nombre = models.CharField(max_length=255)
+    descripcion = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    update_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'Tienda'
+        verbose_name_plural = 'Tiendas'
+        
+#? Tabla de Productos le pertenece a Tienda
+class ProductoTienda(models.Model):
+    producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
+    tienda = models.ForeignKey(Tienda, on_delete=models.CASCADE)
+
+    class Meta:
+        db_table = 'Producto_Tienda'
+        verbose_name_plural = 'ProductosTienda'
 
 #? Tabla de Cajas le pertenece a Caja
 class Caja(models.Model):
