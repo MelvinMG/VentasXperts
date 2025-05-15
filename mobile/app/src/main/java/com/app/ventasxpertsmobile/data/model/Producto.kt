@@ -5,14 +5,14 @@ data class Producto(
     val id: Int,
     val codigo: String,
     val nombre: String,
+    val categoria: Int,
+    val proveedor: Int?,
     val stock_Inventario: Int,
     val stock_Minimo: Int,
-    val precio_proveedor: String,
-    val precio_tienda: String,
-    val ganancia_porcentaje: String?,
-    val ganancia_pesos: String?,
+    val precio_proveedor: Double,
+    val precio_tienda: Double,
+    val ganancia_porcentaje: Double?,
+    val ganancia_pesos: Double?,
     val created_at: String,
-    val updated_at: String,
-    val categoria: Int,
-    val proveedor: Int
+    val updated_at: String
 )

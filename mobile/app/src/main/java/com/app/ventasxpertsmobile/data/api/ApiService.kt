@@ -8,7 +8,6 @@ import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
 
-// Imports de catalogo
 import com.app.ventasxpertsmobile.data.model.TiendaResponse
 
 interface ApiService {
@@ -24,5 +23,4 @@ interface ApiService {
 
     @GET("caja/tickets/historial/")
     fun getHistorialTickets(): Call<List<Ticket>>
-
 }
