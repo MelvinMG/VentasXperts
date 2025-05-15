@@ -59,4 +59,37 @@ class CajaViewModel : ViewModel() {
             }
         }
     }
+
+    fun agregarUnidad(id: Int) {
+        viewModelScope.launch {
+            try {
+                apiService.agregarUnidad(id)
+                cargarProductos()  // recarga lista actualizada
+            } catch (e: Exception) {
+                _error.value = e.message
+            }
+        }
+    }
+
+    fun restarUnidad(id: Int) {
+        viewModelScope.launch {
+            try {
+                apiService.restarUnidad(id)
+                cargarProductos()
+            } catch (e: Exception) {
+                _error.value = e.message
+            }
+        }
+    }
+
+    fun quitarProducto(id: Int) {
+        viewModelScope.launch {
+            try {
+                apiService.quitarProducto(id)
+                cargarProductos()
+            } catch (e: Exception) {
+                _error.value = e.message
+            }
+        }
+    }
 }

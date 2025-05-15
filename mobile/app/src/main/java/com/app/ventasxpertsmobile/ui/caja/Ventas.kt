@@ -106,15 +106,17 @@ fun VentasScreen(
                 )
 
                 LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 16.dp)
+                    modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)
                 ) {
                     items(productosFiltrados) { carritoProducto ->
                         ProductoItem(
+                            id = carritoProducto.producto.id,
                             nombre = carritoProducto.producto.nombre,
                             cantidad = carritoProducto.cantidad,
-                            precio = carritoProducto.producto.precio_tienda
+                            precio = carritoProducto.producto.precio_tienda,
+                            onAgregar = { id -> ventasViewModel.agregarUnidad(id) },
+                            onQuitarUnidad = { id -> ventasViewModel.restarUnidad(id) },
+                            onEliminar = { id -> ventasViewModel.quitarProducto(id) }
                         )
                     }
                 }
@@ -124,7 +126,15 @@ fun VentasScreen(
 }
 
 @Composable
-fun ProductoItem(nombre: String, cantidad: Int, precio: Double) {
+fun ProductoItem(
+    id: Int,
+    nombre: String,
+    cantidad: Int,
+    precio: Double,
+    onAgregar: (Int) -> Unit,
+    onQuitarUnidad: (Int) -> Unit,
+    onEliminar: (Int) -> Unit
+) {
     Card(modifier = Modifier.padding(vertical = 8.dp)) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(text = nombre, style = MaterialTheme.typography.titleMedium)
@@ -137,30 +147,29 @@ fun ProductoItem(nombre: String, cantidad: Int, precio: Double) {
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Button(
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = colorResource(id = R.color.BlueStrong)
-                    ),
-                    onClick = { }) {
+                    colors = ButtonDefaults.buttonColors(containerColor = colorResource(id = R.color.BlueStrong)),
+                    onClick = { onAgregar(id) }
+                ) {
                     Icon(Icons.Filled.Add, contentDescription = "Agregar")
                     Spacer(modifier = Modifier.width(4.dp))
                     Text("Agregar")
                 }
                 Button(
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = colorResource(id = R.color.BlueStrong)
-                    ),
-                    onClick = { /* quitar producto */ }) {
+                    colors = ButtonDefaults.buttonColors(containerColor = colorResource(id = R.color.BlueStrong)),
+                    onClick = { onQuitarUnidad(id) }
+                ) {
                     Icon(Icons.Filled.Remove, contentDescription = "Quitar")
                     Spacer(modifier = Modifier.width(4.dp))
                     Text("Quitar")
                 }
-                IconButton(onClick = { /* eliminar producto */ }) {
+                IconButton(onClick = { onEliminar(id) }) {
                     Icon(Icons.Filled.Delete, contentDescription = "Eliminar")
                 }
             }
         }
     }
 }
+
 
 @Composable
 fun FooterVenta(/*productos: MutableList<Producto>,*/ onNavigationSelected: (String) -> Unit) {
