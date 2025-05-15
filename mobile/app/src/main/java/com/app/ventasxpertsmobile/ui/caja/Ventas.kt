@@ -28,6 +28,8 @@ fun VentasScreen(
 ) {
     val productos by ventasViewModel.productos.collectAsState()
 
+    val productosCatalogo by ventasViewModel.productosCatalogo.collectAsState()
+
     var query by remember { mutableStateOf("") }
     var active by remember { mutableStateOf(false) }
 
@@ -37,6 +39,7 @@ fun VentasScreen(
 
     LaunchedEffect(Unit) {
         ventasViewModel.cargarProductos()
+        ventasViewModel.cargarProductosCatalogo()
     }
 
     BaseScreen(
@@ -77,24 +80,19 @@ fun VentasScreen(
                         }
                     }
                 ) {
-                    Text(
-                        "Sugerencia: Coca",
-                        modifier = Modifier
-                            .padding(8.dp)
-                            .clickable {
-                                query = "Coca"
-                                active = false
-                            }
-                    )
-                    Text(
-                        "Sugerencia: Huevo",
-                        modifier = Modifier
-                            .padding(8.dp)
-                            .clickable {
-                                query = "Huevo"
-                                active = false
-                            }
-                    )
+                    productosCatalogo.forEach { producto ->
+                        Text(
+                            "Sugerencia: ${producto.nombre}",
+                            modifier = Modifier
+                                .padding(8.dp)
+                                .clickable {
+                                    // Agrega el producto al carrito
+                                    ventasViewModel.agregarUnidad(producto.id)
+                                    query = producto.nombre
+                                    active = false
+                                }
+                        )
+                    }
                 }
 
                 Text(

@@ -12,6 +12,7 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import com.app.ventasxpertsmobile.data.model.CarritoProducto
+import com.app.ventasxpertsmobile.data.model.Producto
 
 class CajaViewModel : ViewModel() {
 
@@ -59,6 +60,20 @@ class CajaViewModel : ViewModel() {
             }
         }
     }
+
+    private val _productosCatalogo = MutableStateFlow<List<Producto>>(emptyList())
+    val productosCatalogo: StateFlow<List<Producto>> = _productosCatalogo
+    fun cargarProductosCatalogo() {
+        viewModelScope.launch {
+            try {
+                val response = apiService.getProductos()
+                _productosCatalogo.value = response.results
+            } catch (e: Exception) {
+                _error.value = e.message
+            }
+        }
+    }
+
 
     fun agregarUnidad(id: Int) {
         viewModelScope.launch {
