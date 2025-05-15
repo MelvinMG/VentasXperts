@@ -36,8 +36,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.app.ventasxpertsmobile.data.api.LoginRequest
 import com.app.ventasxpertsmobile.data.api.TokenResponse
+import com.app.ventasxpertsmobile.data.api.UsuarioResponse
 import com.app.ventasxpertsmobile.data.auth.TokenManager
+import com.app.ventasxpertsmobile.data.auth.UserSessionManager
 import com.app.ventasxpertsmobile.data.network.RetrofitClient
+import com.app.ventasxpertsmobile.ui.navigation.NavigationItem
 import com.app.ventasxpertsmobile.ui.theme.AppTypography
 import com.app.ventasxpertsmobile.ui.theme.AzulPrincipal
 import com.app.ventasxpertsmobile.ui.theme.Blanco1
@@ -52,7 +55,7 @@ import retrofit2.Response
 
 
 @Composable
-fun LoginForm(onLoginSuccess: () -> Unit) {
+fun LoginForm(onLoginSuccess: (String) -> Unit) {
     val context = LocalContext.current
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -134,17 +137,50 @@ fun LoginForm(onLoginSuccess: () -> Unit) {
                         val loginRequest = LoginRequest(username, password)
                         RetrofitClient.api.login(loginRequest).enqueue(object : Callback<TokenResponse> {
                             override fun onResponse(call: Call<TokenResponse>, response: Response<TokenResponse>) {
-                                loading = false
                                 if (response.isSuccessful) {
                                     val tokens = response.body()
                                     val accessToken = tokens?.access
+
                                     if (accessToken != null) {
                                         TokenManager.saveAccessToken(context, accessToken)
-                                        onLoginSuccess()
+
+                                        RetrofitClient.api.getCurrentUser().enqueue(object : Callback<UsuarioResponse> {
+                                            override fun onResponse(call: Call<UsuarioResponse>, response: Response<UsuarioResponse>) {
+                                                loading = false
+                                                if (response.isSuccessful) {
+                                                    val user = response.body()
+                                                    if (user != null) {
+                                                        UserSessionManager.saveRoles(context, user.roles.toSet())
+                                                        val fullName = "${user.nombre} ${user.apPaterno}"
+                                                        UserSessionManager.saveUserFullName(context, fullName)
+
+                                                        val route = when {
+                                                            "Administrador" in user.roles -> NavigationItem.Usuarios.route
+                                                            "Gerente" in user.roles -> NavigationItem.Bitacora.route
+                                                            "Cajero" in user.roles -> NavigationItem.Catalogo.route
+                                                            else -> NavigationItem.Catalogo.route
+                                                        }
+
+                                                        onLoginSuccess(route) // envía la ruta hacia MainActivity
+                                                    } else {
+                                                        Toast.makeText(context, "Error al obtener usuario", Toast.LENGTH_SHORT).show()
+                                                    }
+                                                } else {
+                                                    Toast.makeText(context, "Error al obtener usuario", Toast.LENGTH_SHORT).show()
+                                                }
+                                            }
+                                            override fun onFailure(call: Call<UsuarioResponse>, t: Throwable) {
+                                                loading = false
+                                                Toast.makeText(context, "Error de red: ${t.message}", Toast.LENGTH_SHORT).show()
+                                            }
+                                        })
+
                                     } else {
+                                        loading = false
                                         Toast.makeText(context, "Error: Token inválido", Toast.LENGTH_SHORT).show()
                                     }
                                 } else {
+                                    loading = false
                                     Toast.makeText(context, "Credenciales incorrectas", Toast.LENGTH_SHORT).show()
                                 }
                             }

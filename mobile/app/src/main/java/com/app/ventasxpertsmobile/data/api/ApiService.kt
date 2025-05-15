@@ -11,6 +11,9 @@ interface ApiService {
     @POST("token/")
     fun login(@Body credentials: LoginRequest): Call<TokenResponse>
 
+    @GET("users/me/")
+    fun getCurrentUser(): Call<UsuarioResponse>
+
     @GET("usuarios/")
     fun getUsuarios(): Call<List<Usuario>>
 }

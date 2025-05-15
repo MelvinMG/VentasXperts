@@ -34,15 +34,9 @@ fun AppNavHost(
         composable(NavigationItem.Usuarios.route) {
             UsuariosScreen(
                 onLogout = onLogout,
-                onNavigationSelected = { route ->
-                    navController.navigate(route)
-                },
-                onVerDetalles = { userId ->
-                    navController.navigate("detalle_usuario/$userId")
-                },
-                onAniadirUsuario = {
-                    navController.navigate("aniadir_usuario")
-                }
+                onNavigationSelected = { route -> navController.navigate(route) },
+                onVerDetalles = { userId -> navController.navigate("detalle_usuario/$userId") },
+                onAniadirUsuario = { navController.navigate("aniadir_usuario") }
             )
         }
         composable(
@@ -59,7 +53,7 @@ fun AppNavHost(
         composable("aniadir_usuario") {
             CrearUsuarioScreen(
                 onLogout = onLogout,
-                onNavigationSelected = { route -> navController.navigate(route)}
+                onNavigationSelected = { route -> navController.navigate(route) }
             )
         }
         composable(NavigationItem.Bitacora.route) {
@@ -80,38 +74,35 @@ fun AppNavHost(
                 onNavigationSelected = { route -> navController.navigate(route) }
             )
         }
-        composable("historial"){
+        composable("historial") {
             HistorialTicketsScreen(
                 onLogout = onLogout,
                 onNavigationSelected = { route -> navController.navigate(route) }
             )
         }
-        composable("catalogo"){
+        composable("catalogo") {
             TiendasCatalogoScreen(
                 onLogout = onLogout,
                 onNavigationSelected = { route -> navController.navigate(route) }
             )
         }
-        composable("info_tienda"){
+        composable("info_tienda") {
             TiendaProductosScreen(
                 onLogout = onLogout,
                 onNavigationSelected = { route -> navController.navigate(route) }
             )
         }
-
         composable(NavigationItem.Proveedor.route) {
             ProveedorScreen(
                 onLogout = onLogout,
-                onNavigationSelected = { route ->
-                    navController.navigate(route)
-                },
-                onVerDetalles = { proveedorId ->
-                    navController.navigate("detalle_proveedor/$proveedorId")
-                },
-
+                onNavigationSelected = { route -> navController.navigate(route) },
+                onVerDetalles = { proveedorId -> navController.navigate("detalle_proveedor/$proveedorId") }
             )
         }
-        composable("detalle_proveedor/{proveedorId}", arguments = listOf(navArgument("proveedorId") { type = NavType.IntType })) { backStackEntry ->
+        composable(
+            "detalle_proveedor/{proveedorId}",
+            arguments = listOf(navArgument("proveedorId") { type = NavType.IntType })
+        ) { backStackEntry ->
             val proveedorId = backStackEntry.arguments?.getInt("proveedorId") ?: 0
             DetalleProveedorScreen(
                 proveedorId = proveedorId,
@@ -119,8 +110,6 @@ fun AppNavHost(
                 onNavigationSelected = { route -> navController.navigate(route) }
             )
         }
-
-
         composable(NavigationItem.Inventario.route) {
             val productos = listOf(
                 Producto(1, "Coca-Cola", 18.00, "Suficiente stock", "Refrescos"),
@@ -131,17 +120,12 @@ fun AppNavHost(
             )
             InventarioScreen(
                 productos = productos,
-                onAgregar = {
-                    navController.navigate("editar_producto/Nuevo%20producto")
-                },
-                onEditar = { producto ->
-                    navController.navigate("editar_producto/${producto.nombre.replace(" ", "%20")}")
-                },
+                onAgregar = { navController.navigate("editar_producto/Nuevo%20producto") },
+                onEditar = { producto -> navController.navigate("editar_producto/${producto.nombre.replace(" ", "%20")}") },
                 onLogout = onLogout,
                 onNavigationSelected = { route -> navController.navigate(route) }
             )
         }
-
         composable(
             route = "editar_producto/{nombreProducto}",
             arguments = listOf(navArgument("nombreProducto") { type = NavType.StringType })
@@ -154,10 +138,6 @@ fun AppNavHost(
                 navController = navController
             )
         }
-
-
-        // ...más pantallas
-
+        // Agrega más pantallas según sea necesario
     }
 }
-

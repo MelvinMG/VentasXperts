@@ -18,7 +18,6 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import com.app.ventasxpertsmobile.data.network.RetrofitClient
 import kotlinx.coroutines.launch
 
-
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,15 +25,30 @@ class MainActivity : ComponentActivity() {
         setContent {
             VentasXpertsMobileTheme {
                 var isLoggedIn by remember { mutableStateOf(false) }
+                var initialRoute by remember { mutableStateOf<String?>(null) }
                 val navController = rememberNavController()
                 val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
                 val scope = rememberCoroutineScope()
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = navBackStackEntry?.destination?.route ?: ""
 
+                // Navega al route inicial solo si está logueado y route existe
+                LaunchedEffect(isLoggedIn, initialRoute) {
+                    if (isLoggedIn && initialRoute != null) {
+                        navController.navigate(initialRoute!!) {
+                            // popUpTo una ruta válida dentro del grafo (ej. "usuarios")
+                            popUpTo("usuarios") { inclusive = true }
+                        }
+                        initialRoute = null
+                    }
+                }
+
                 if (!isLoggedIn) {
                     LoginScreen(
-                        onLoginSuccess = { isLoggedIn = true }
+                        onLoginSuccess = { route ->
+                            isLoggedIn = true
+                            initialRoute = route // Almacena la ruta para navegar en LaunchedEffect
+                        }
                     )
                 } else {
                     ModalNavigationDrawer(
@@ -45,16 +59,19 @@ class MainActivity : ComponentActivity() {
                                 onItemSelected = { route ->
                                     if (route != currentRoute) {
                                         navController.navigate(route) {
-                                            popUpTo(navController.graph.startDestinationId) {
-                                                saveState = true
-                                            }
+                                            popUpTo("usuarios") { saveState = true }
                                             launchSingleTop = true
                                             restoreState = true
                                         }
                                     }
                                     scope.launch { drawerState.close() }
                                 },
-                                onLogout = { isLoggedIn = false },
+                                onLogout = {
+                                    isLoggedIn = false
+                                    navController.navigate("usuarios") {
+                                        popUpTo("usuarios") { inclusive = true }
+                                    }
+                                },
                                 onClose = { scope.launch { drawerState.close() } }
                             )
                         }
