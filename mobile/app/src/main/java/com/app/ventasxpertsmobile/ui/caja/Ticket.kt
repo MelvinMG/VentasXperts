@@ -15,16 +15,37 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.app.ventasxpertsmobile.R
-import kotlinx.coroutines.launch
 import com.app.ventasxpertsmobile.ui.templates.BaseScreen
+import kotlinx.coroutines.launch
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import com.app.ventasxpertsmobile.ui.caja.CajaViewModel
 
 @Composable
 fun TicketScreen(
     onLogout: () -> Unit = {},
-    onNavigationSelected: (String) -> Unit = {}
+    onNavigationSelected: (String) -> Unit = {},
+    ventasViewModel: CajaViewModel,
 ) {
+    val productos by ventasViewModel.productos.collectAsState()
+
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+
+    // Fecha y hora actual formateada
+    val fechaHora = remember {
+        val now = LocalDateTime.now()
+        val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")
+        now.format(formatter)
+    }
+
+    LaunchedEffect(Unit) {
+        ventasViewModel.cargarProductos()
+    }
+
+    // Calcula total de productos y precio total
+    val totalCantidad = productos.sumOf { it.cantidad }
+    val totalPrecio = productos.sumOf { it.cantidad * it.producto.precio_tienda }
 
     BaseScreen(
         title = "Ticket generado",
@@ -46,7 +67,7 @@ fun TicketScreen(
                             onNavigationSelected("caja")
                         }
                     ) {
-                        Text("Aceptar", color = Color.White)
+                        Text("Finalizar venta", color = Color.White)
                     }
                     Button(
                         colors = ButtonDefaults.buttonColors(
@@ -64,11 +85,11 @@ fun TicketScreen(
                     ) {
                         Icon(Icons.Filled.Print, contentDescription = "Imprimir")
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Imprimir ticket", color = Color.White)
+                        Text("Imprimir", color = Color.White)
                     }
                 }
             },
-            modifier = Modifier.padding(innerPadding) // Respeta el padding de BaseScreen
+            modifier = Modifier.padding(innerPadding)
         ) { scaffoldPadding ->
             Column(
                 modifier = Modifier
@@ -94,8 +115,8 @@ fun TicketScreen(
                             textAlign = TextAlign.Center,
                             modifier = Modifier.fillMaxWidth()
                         )
-                        Text("Fecha: 14/04/2025 14:30:55")
-                        Text("Ticket #: 1")
+                        Text("Fecha: $fechaHora")
+                        Text("Ticket #: 1") // Si quieres, puedes hacerlo dinámico
                         Spacer(modifier = Modifier.height(12.dp))
 
                         Row(
@@ -103,23 +124,28 @@ fun TicketScreen(
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Text("Producto", fontWeight = FontWeight.Bold)
-                            Text("Cantidad")
-                            Text("Precio")
-                            Text("Subtotal")
+                            Text("Cantidad", fontWeight = FontWeight.Bold)
+                            Text("Precio", fontWeight = FontWeight.Bold)
+                            Text("Subtotal", fontWeight = FontWeight.Bold)
                         }
 
                         Divider(Modifier.padding(vertical = 4.dp))
 
-                        TicketItem("Coca cola 3lts", 2, 50.0)
-                        TicketItem("Huevo - 1kg", 2, 30.0)
+                        productos.forEach { producto ->
+                            TicketItem(
+                                nombre = producto.producto.nombre,
+                                cantidad = producto.cantidad,
+                                precio = producto.producto.precio_tienda
+                            )
+                        }
 
                         Spacer(modifier = Modifier.height(8.dp))
 
-                        Text("Total de productos: 4")
-                        Text("Precio total: \$160.00")
+                        Text("Total de productos: $totalCantidad")
+                        Text("Precio total: \$${"%.2f".format(totalPrecio)}")
                         Text("IVA: N/A")
                         Spacer(modifier = Modifier.height(8.dp))
-                        Text("Total: 160.00", fontWeight = FontWeight.Bold)
+                        Text("Total: ${"%.2f".format(totalPrecio)}", fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -139,4 +165,3 @@ fun TicketItem(nombre: String, cantidad: Int, precio: Double) {
         Text("$${"%.2f".format(cantidad * precio)}")
     }
 }
-

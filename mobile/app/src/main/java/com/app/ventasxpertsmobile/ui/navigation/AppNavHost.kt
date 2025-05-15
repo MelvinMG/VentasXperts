@@ -80,6 +80,7 @@ fun AppNavHost(
         composable("ticket") {
             TicketScreen(
                 onLogout = onLogout,
+                ventasViewModel = viewModel(),
                 onNavigationSelected = { route -> navController.navigate(route) }
             )
         }

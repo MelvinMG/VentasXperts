@@ -45,13 +45,11 @@ fun VentasScreen(
         onNavigationSelected = onNavigationSelected
     ) { innerPadding ->
         Scaffold(
-            floatingActionButton = {
-                FloatingActionButton(onClick = { /* acción cámara */ }) {
-                    Icon(Icons.Default.CameraAlt, contentDescription = "Abrir cámara")
-                }
-            },
             bottomBar = {
-                FooterVenta(/*productos,*/ onNavigationSelected)
+                FooterVenta(
+                    ventasViewModel = ventasViewModel,
+                    onNavigationSelected = onNavigationSelected
+                )
             },
             modifier = Modifier.padding(innerPadding) // Para respetar el padding del Drawer
         ) { scaffoldPadding ->
@@ -172,10 +170,16 @@ fun ProductoItem(
 
 
 @Composable
-fun FooterVenta(/*productos: MutableList<Producto>,*/ onNavigationSelected: (String) -> Unit) {
-    //val total = productos.sumOf { it.precio * it.cantidad }
+fun FooterVenta(
+    ventasViewModel: CajaViewModel,
+    onNavigationSelected: (String) -> Unit
+) {
+    val productos by ventasViewModel.productos.collectAsState()
+
     var showDialog_cancelar by remember { mutableStateOf(false) }
     var showDialog_finalizar by remember { mutableStateOf(false) }
+
+    val totalCost = productos.sumOf { it.cantidad * it.producto.precio_tienda }
 
     if (showDialog_cancelar) {
         AlertDialog(
@@ -184,7 +188,7 @@ fun FooterVenta(/*productos: MutableList<Producto>,*/ onNavigationSelected: (Str
             text = { Text("Se eliminarán todos los productos del carrito actual.") },
             confirmButton = {
                 TextButton(onClick = {
-                    //productos.clear()
+                    ventasViewModel.vaciarCarrito() // <-- llamada a vaciar carrito
                     showDialog_cancelar = false
                 }) {
                     Text("Sí, cancelar")
@@ -226,9 +230,10 @@ fun FooterVenta(/*productos: MutableList<Producto>,*/ onNavigationSelected: (Str
             .padding(12.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Text("Costo total de los productos: MNX $100", fontSize = 16.sp)
-        Text("IVA calculado: N/A")
-        Text("Descuento: N/A")
+        Text(
+            "Costo total de los productos: MNX ${"%.2f".format(totalCost)}",
+            fontSize = 16.sp
+        )
         Row(
             horizontalArrangement = Arrangement.SpaceEvenly,
             modifier = Modifier.fillMaxWidth()

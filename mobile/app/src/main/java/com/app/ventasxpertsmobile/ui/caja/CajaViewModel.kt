@@ -92,4 +92,15 @@ class CajaViewModel : ViewModel() {
             }
         }
     }
+
+    fun vaciarCarrito() {
+        viewModelScope.launch {
+            try {
+                apiService.vaciarCarrito()
+                cargarProductos()  // refrescar la lista, que debería quedar vacía
+            } catch (e: Exception) {
+                _error.value = e.message
+            }
+        }
+    }
 }

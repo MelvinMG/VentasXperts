@@ -38,4 +38,7 @@ interface ApiService {
 
     @POST("caja/carritoProducto/{id}/quitar/")
     suspend fun quitarProducto(@Path("id") id: Int)
+
+    @POST("caja/carritoProducto/vaciar/")
+    suspend fun vaciarCarrito()
 }
