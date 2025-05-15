@@ -16,7 +16,7 @@ import com.app.ventasxpertsmobile.ui.theme.Blanco1
 
 @SuppressLint("ConfigurationScreenWidthHeight")
 @Composable
-fun LoginScreen(onLoginSuccess: () -> Unit) {
+fun LoginScreen(onLoginSuccess: (String) -> Unit) {
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
     val offsetValue = screenHeight * 0.25f
 

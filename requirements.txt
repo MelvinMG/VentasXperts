@@ -4,3 +4,5 @@ django-cors-headers==4.7.0
 # Requerimientos caja
 xhtml2pdf==0.2.17
 weasyprint==65.0
+# Requerimientos para la Conexion de Android y Django
+djangorestframework-simplejwt==5.5.0

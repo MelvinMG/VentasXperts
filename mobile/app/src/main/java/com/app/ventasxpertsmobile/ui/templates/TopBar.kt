@@ -60,6 +60,8 @@ import compose.icons.fontawesomeicons.solid.UserLock
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
+import com.app.ventasxpertsmobile.data.auth.UserSessionManager
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -131,7 +133,7 @@ fun BaseScreen(
     val scope = rememberCoroutineScope()
     val selectedItem = remember { mutableStateOf(title) }
     val context = LocalContext.current
-
+    val roles = UserSessionManager.getRoles(context) // Aqui vamos a obtener el rol del usuario ingresado
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
@@ -162,117 +164,121 @@ fun BaseScreen(
 
                     HorizontalDivider()
 
-                    // Ítems del menú
-                    NavigationDrawerItem(
-                        label = { Text("Catalogo") },
-                        selected = selectedItem.value == "Catalogo",
-                        onClick = {
-                            selectedItem.value = NavigationItem.Catalogo.label
-                            onNavigationSelected(NavigationItem.Catalogo.route)
-                            scope.launch { drawerState.close() }
-                        },
-                        icon = {
-                            Icon(
-                                imageVector = FontAwesomeIcons.Solid.StoreAlt,
-                                contentDescription = "Catalogo",
-                                modifier = Modifier.size(24.dp)
-                            )
-                        },
-                        modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
-                    )
-
-                    NavigationDrawerItem(
-                        label = { Text("Caja") },
-                        selected = selectedItem.value == "Caja",
-                        onClick = {
-                            selectedItem.value = NavigationItem.Caja.label
-                            onNavigationSelected(NavigationItem.Caja.route)
-                            scope.launch { drawerState.close() }
-                        },
-                        icon = {
-                            Icon(
-                                imageVector = Icons.Outlined.ShoppingCart,
-                                contentDescription = "Caja",
-                                modifier = Modifier.size(24.dp)
-                            )
-                        },
-                        modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
-                    )
-
-                    NavigationDrawerItem(
-                        label = { Text("Inventario") },
-                        selected = selectedItem.value == "Inventario",
-                        onClick = {
-                            selectedItem.value = "Inventario"
-                            onNavigationSelected(NavigationItem.Inventario.route)
-                            scope.launch { drawerState.close() }
-                        },
-                        icon = {
-                            Icon(
-                                imageVector = FontAwesomeIcons.Solid.Boxes,
-                                contentDescription = "Inventario",
-                                modifier = Modifier.size(24.dp)
-                            )
-                        },
-                        modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
-                    )
-
-                    NavigationDrawerItem(
-                        label = { Text("Proveedores") },
-                        selected = selectedItem.value == "Proveedores",
-                        onClick = {
-                            selectedItem.value = NavigationItem.Proveedor.label
-                            onNavigationSelected(NavigationItem.Proveedor.route)
-                            scope.launch { drawerState.close() }
-                        },
-                        icon = {
-                            Icon(
-                                imageVector = FontAwesomeIcons.Solid.Truck,
-                                contentDescription = "Proveedores",
-                                modifier = Modifier.size(24.dp)
-                            )
-                        },
-                        modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
-                    )
-
-                    NavigationDrawerItem(
-                        label = { Text("Usuarios") },
-                        selected = selectedItem.value == NavigationItem.Usuarios.label,
-                        onClick = {
-                            selectedItem.value = NavigationItem.Usuarios.label
-                            onNavigationSelected(NavigationItem.Usuarios.route)
-                            scope.launch { drawerState.close() }
-                        },
-                        icon = {
-                            Icon(
-                                imageVector = FontAwesomeIcons.Solid.UserLock,
-                                contentDescription = "Usuarios",
-                                modifier = Modifier.size(24.dp)
-                            )
-                        },
-                        modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
-                    )
-
-                    NavigationDrawerItem(
-                        label = { Text("Bitácora") },
-                        selected = selectedItem.value == NavigationItem.Bitacora.label,
-                        onClick = {
-                            selectedItem.value = NavigationItem.Bitacora.label
-                            onNavigationSelected(NavigationItem.Bitacora.route)
-                            scope.launch { drawerState.close() }
-                        },
-                        icon = {
-                            Icon(
-                                imageVector = Icons.Filled.Book,
-                                contentDescription = "Bitácora",
-                                modifier = Modifier.size(24.dp)
-                            )
-                        },
-                        modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
-                    )
-
-
-
+                    // Aquí el menú filtrado por roles
+                    if (roles.contains("Administrador") || roles.contains("Gerente") || roles.contains("Cajero")) {
+                        NavigationDrawerItem(
+                            label = { Text("Catalogo") },
+                            selected = selectedItem.value == "Catalogo",
+                            onClick = {
+                                selectedItem.value = NavigationItem.Catalogo.label
+                                onNavigationSelected(NavigationItem.Catalogo.route)
+                                scope.launch { drawerState.close() }
+                            },
+                            icon = {
+                                Icon(
+                                    imageVector = FontAwesomeIcons.Solid.StoreAlt,
+                                    contentDescription = "Catalogo",
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            },
+                            modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                        )
+                    }
+                    if (roles.contains("Administrador") || roles.contains("Gerente") || roles.contains("Cajero")) {
+                        NavigationDrawerItem(
+                            label = { Text("Caja") },
+                            selected = selectedItem.value == "Caja",
+                            onClick = {
+                                selectedItem.value = NavigationItem.Caja.label
+                                onNavigationSelected(NavigationItem.Caja.route)
+                                scope.launch { drawerState.close() }
+                            },
+                            icon = {
+                                Icon(
+                                    imageVector = Icons.Outlined.ShoppingCart,
+                                    contentDescription = "Caja",
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            },
+                            modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                        )
+                    }
+                    if (roles.contains("Administrador") || roles.contains("Gerente") ){
+                        NavigationDrawerItem(
+                            label = { Text("Inventario") },
+                            selected = selectedItem.value == "Inventario",
+                            onClick = {
+                                selectedItem.value = "Inventario"
+                                onNavigationSelected(NavigationItem.Inventario.route)
+                                scope.launch { drawerState.close() }
+                            },
+                            icon = {
+                                Icon(
+                                    imageVector = FontAwesomeIcons.Solid.Boxes,
+                                    contentDescription = "Inventario",
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            },
+                            modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                        )
+                    }
+                    if (roles.contains("Administrador") || roles.contains("Gerente")) {
+                        NavigationDrawerItem(
+                            label = { Text("Proveedores") },
+                            selected = selectedItem.value == "Proveedores",
+                            onClick = {
+                                selectedItem.value = NavigationItem.Proveedor.label
+                                onNavigationSelected(NavigationItem.Proveedor.route)
+                                scope.launch { drawerState.close() }
+                            },
+                            icon = {
+                                Icon(
+                                    imageVector = FontAwesomeIcons.Solid.Truck,
+                                    contentDescription = "Proveedores",
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            },
+                            modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                        )
+                    }
+                    if (roles.contains("Administrador")) {
+                        NavigationDrawerItem(
+                            label = { Text("Usuarios") },
+                            selected = selectedItem.value == NavigationItem.Usuarios.label,
+                            onClick = {
+                                selectedItem.value = NavigationItem.Usuarios.label
+                                onNavigationSelected(NavigationItem.Usuarios.route)
+                                scope.launch { drawerState.close() }
+                            },
+                            icon = {
+                                Icon(
+                                    imageVector = FontAwesomeIcons.Solid.UserLock,
+                                    contentDescription = "Usuarios",
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            },
+                            modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                        )
+                    }
+                    if (roles.contains("Administrador") || roles.contains("Gerente") ) {
+                        NavigationDrawerItem(
+                            label = { Text("Bitácora") },
+                            selected = selectedItem.value == NavigationItem.Bitacora.label,
+                            onClick = {
+                                selectedItem.value = NavigationItem.Bitacora.label
+                                onNavigationSelected(NavigationItem.Bitacora.route)
+                                scope.launch { drawerState.close() }
+                            },
+                            icon = {
+                                Icon(
+                                    imageVector = Icons.Filled.Book,
+                                    contentDescription = "Bitácora",
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            },
+                            modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                        )
+                    }
 
                     HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
@@ -296,8 +302,9 @@ fun BaseScreen(
 
 
                     // Agrega un simple texto
+                    val userFullName = UserSessionManager.getUserFullName(context)
                     Text(
-                        text = "Juan Pérez",
+                        text = userFullName,
                         modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                     )
 
