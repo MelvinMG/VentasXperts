@@ -9,6 +9,8 @@ import retrofit2.http.GET
 import retrofit2.http.POST
 
 import com.app.ventasxpertsmobile.data.model.TiendaResponse
+import com.app.ventasxpertsmobile.data.model.CarritoProducto
+import com.app.ventasxpertsmobile.data.model.CarritoProductoResponse
 
 interface ApiService {
     @POST("token/")
@@ -23,4 +25,7 @@ interface ApiService {
 
     @GET("caja/tickets/historial/")
     fun getHistorialTickets(): Call<List<Ticket>>
+
+    @GET("caja/carritoProducto/")
+    suspend fun getCarritoProductos(): CarritoProductoResponse
 }

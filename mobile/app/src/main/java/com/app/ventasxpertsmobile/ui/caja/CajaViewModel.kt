@@ -11,6 +11,7 @@ import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import com.app.ventasxpertsmobile.data.model.CarritoProducto
 
 class CajaViewModel : ViewModel() {
 
@@ -42,5 +43,20 @@ class CajaViewModel : ViewModel() {
                 _error.value = t.message
             }
         })
+    }
+
+    private val _productos = MutableStateFlow<List<CarritoProducto>>(emptyList())
+    val productos: StateFlow<List<CarritoProducto>> = _productos
+
+    fun cargarProductos() {
+        viewModelScope.launch {
+            try {
+                val response = apiService.getCarritoProductos()
+                _productos.value = response.results
+            } catch (e: Exception) {
+                // Puedes registrar el error si necesitas debuggear
+                _error.value = e.message
+            }
+        }
     }
 }

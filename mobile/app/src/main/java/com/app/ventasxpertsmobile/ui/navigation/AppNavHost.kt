@@ -1,6 +1,7 @@
 package com.app.ventasxpertsmobile.ui.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -72,6 +73,7 @@ fun AppNavHost(
         composable(NavigationItem.Caja.route) {
             VentasScreen(
                 onLogout = onLogout,
+                ventasViewModel = viewModel(),
                 onNavigationSelected = { route -> navController.navigate(route) }
             )
         }

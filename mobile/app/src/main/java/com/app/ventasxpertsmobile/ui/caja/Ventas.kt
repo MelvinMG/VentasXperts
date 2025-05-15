@@ -16,26 +16,27 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.ui.res.colorResource
 import com.app.ventasxpertsmobile.R
 import com.app.ventasxpertsmobile.ui.templates.BaseScreen
+import com.app.ventasxpertsmobile.ui.caja.CajaViewModel
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VentasScreen(
     onLogout: () -> Unit = {},
-    onNavigationSelected: (String) -> Unit = {}
+    onNavigationSelected: (String) -> Unit = {},
+    ventasViewModel: CajaViewModel,
 ) {
+    val productos by ventasViewModel.productos.collectAsState()
+
     var query by remember { mutableStateOf("") }
     var active by remember { mutableStateOf(false) }
-    val productos = remember {
-        mutableStateListOf(
-            Producto("Coca - Cola 3 lts", 2, 50.0),
-            Producto("Huevo - 1kg", 2, 30.0),
-            Producto("Leche - 2L", 1, 25.0),
-            Producto("Pan Bimbo", 3, 20.0),
-        )
-    }
 
     val productosFiltrados = productos.filter {
-        it.nombre.contains(query, ignoreCase = true)
+        it.producto.nombre.contains(query, ignoreCase = true)
+    }
+
+    LaunchedEffect(Unit) {
+        ventasViewModel.cargarProductos()
     }
 
     BaseScreen(
@@ -50,7 +51,7 @@ fun VentasScreen(
                 }
             },
             bottomBar = {
-                FooterVenta(productos, onNavigationSelected)
+                FooterVenta(/*productos,*/ onNavigationSelected)
             },
             modifier = Modifier.padding(innerPadding) // Para respetar el padding del Drawer
         ) { scaffoldPadding ->
@@ -109,8 +110,12 @@ fun VentasScreen(
                         .fillMaxSize()
                         .padding(horizontal = 16.dp)
                 ) {
-                    items(productosFiltrados) { producto ->
-                        ProductoItem(producto)
+                    items(productosFiltrados) { carritoProducto ->
+                        ProductoItem(
+                            nombre = carritoProducto.producto.nombre,
+                            cantidad = carritoProducto.cantidad,
+                            precio = carritoProducto.producto.precio_tienda
+                        )
                     }
                 }
             }
@@ -119,13 +124,13 @@ fun VentasScreen(
 }
 
 @Composable
-fun ProductoItem(producto: Producto) {
+fun ProductoItem(nombre: String, cantidad: Int, precio: Double) {
     Card(modifier = Modifier.padding(vertical = 8.dp)) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text(text = producto.nombre, style = MaterialTheme.typography.titleMedium)
-            Text("Cantidad: ${producto.cantidad}")
-            Text("Precio unitario: MNX ${producto.precio}")
-            Text("Subtotal: MNX ${producto.cantidad * producto.precio}")
+            Text(text = nombre, style = MaterialTheme.typography.titleMedium)
+            Text("Cantidad: $cantidad")
+            Text("Precio unitario: MNX $precio")
+            Text("Subtotal: MNX ${cantidad * precio}")
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -135,7 +140,7 @@ fun ProductoItem(producto: Producto) {
                     colors = ButtonDefaults.buttonColors(
                         containerColor = colorResource(id = R.color.BlueStrong)
                     ),
-                    onClick = { producto.cantidad++ }) {
+                    onClick = { }) {
                     Icon(Icons.Filled.Add, contentDescription = "Agregar")
                     Spacer(modifier = Modifier.width(4.dp))
                     Text("Agregar")
@@ -144,7 +149,7 @@ fun ProductoItem(producto: Producto) {
                     colors = ButtonDefaults.buttonColors(
                         containerColor = colorResource(id = R.color.BlueStrong)
                     ),
-                    onClick = { if (producto.cantidad > 0) producto.cantidad-- }) {
+                    onClick = { /* quitar producto */ }) {
                     Icon(Icons.Filled.Remove, contentDescription = "Quitar")
                     Spacer(modifier = Modifier.width(4.dp))
                     Text("Quitar")
@@ -158,8 +163,8 @@ fun ProductoItem(producto: Producto) {
 }
 
 @Composable
-fun FooterVenta(productos: MutableList<Producto>, onNavigationSelected: (String) -> Unit) {
-    val total = productos.sumOf { it.precio * it.cantidad }
+fun FooterVenta(/*productos: MutableList<Producto>,*/ onNavigationSelected: (String) -> Unit) {
+    //val total = productos.sumOf { it.precio * it.cantidad }
     var showDialog_cancelar by remember { mutableStateOf(false) }
     var showDialog_finalizar by remember { mutableStateOf(false) }
 
@@ -170,7 +175,7 @@ fun FooterVenta(productos: MutableList<Producto>, onNavigationSelected: (String)
             text = { Text("Se eliminarán todos los productos del carrito actual.") },
             confirmButton = {
                 TextButton(onClick = {
-                    productos.clear()
+                    //productos.clear()
                     showDialog_cancelar = false
                 }) {
                     Text("Sí, cancelar")
@@ -191,7 +196,7 @@ fun FooterVenta(productos: MutableList<Producto>, onNavigationSelected: (String)
             text = { Text("Se realizara el cobro de la venta actual.") },
             confirmButton = {
                 TextButton(onClick = {
-                    productos.clear()
+                    //productos.clear()
                     showDialog_finalizar = false
                     onNavigationSelected("ticket")
                 }) {
@@ -212,7 +217,7 @@ fun FooterVenta(productos: MutableList<Producto>, onNavigationSelected: (String)
             .padding(12.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Text("Costo total de los productos: MNX ${"%.2f".format(total)}", fontSize = 16.sp)
+        Text("Costo total de los productos: MNX $100", fontSize = 16.sp)
         Text("IVA calculado: N/A")
         Text("Descuento: N/A")
         Row(
@@ -238,9 +243,3 @@ fun FooterVenta(productos: MutableList<Producto>, onNavigationSelected: (String)
         }
     }
 }
-
-data class Producto(
-    val nombre: String,
-    var cantidad: Int,
-    val precio: Double
-)
