@@ -4,7 +4,7 @@ data class UsuarioResponse(
     val id: Int,
     val username: String,
     val email: String,
-    val firstname: String,
-    val lastname: String,
+    val nombre: String?,
+    val apPaterno: String?,
     val roles: List<String>
 )

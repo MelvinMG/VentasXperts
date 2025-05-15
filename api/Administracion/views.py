@@ -41,11 +41,23 @@ class UserViewSet(viewsets.ModelViewSet):
     def me(self, request):
         user = request.user
         roles = user.groups.values_list('name', flat=True)
+
+        # Acceder a la relación OneToOne con Persona
+        try:
+            persona = user.persona  # gracias a related_name="persona"
+            nombre = persona.nombre
+            apPaterno = persona.apPaterno
+        except Persona.DoesNotExist:
+            nombre = None
+            apPaterno = None
+
         data = {
             "id": user.id,
             "username": user.username,
             "email": user.email,
             "roles": list(roles),
+            "nombre": nombre,
+            "apPaterno": apPaterno,
         }
         return Response(data)
 
@@ -60,11 +72,18 @@ class UserViewSet(viewsets.ModelViewSet):
         for user in User.objects.all():
             persona = Persona.objects.filter(user=user).first()
             user_data = UserSerializer(user).data
+            
+            # Obtener roles (nombres de grupos) y agregarlos a user_data
+            roles = user.groups.values_list('name', flat=True)
+            user_data['roles'] = list(roles)
+            
             if persona:
                 user_data.update(PersonaSerializer(persona).data)
+            
             users_data.append(user_data)
 
         return Response(users_data, status=status.HTTP_200_OK)
+
 
     @transaction.atomic
     @action(detail=False, methods=['post'])

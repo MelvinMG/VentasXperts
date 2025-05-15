@@ -151,7 +151,7 @@ fun LoginForm(onLoginSuccess: (String) -> Unit) {
                                                     val user = response.body()
                                                     if (user != null) {
                                                         UserSessionManager.saveRoles(context, user.roles.toSet())
-                                                        val fullName = "${user.firstname} ${user.lastname}"
+                                                        val fullName = "${user.nombre} ${user.apPaterno}"
                                                         UserSessionManager.saveUserFullName(context, fullName)
 
                                                         val route = when {
