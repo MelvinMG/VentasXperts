@@ -103,4 +103,29 @@ class CajaViewModel : ViewModel() {
             }
         }
     }
+
+    fun procesarVenta(onSuccess: () -> Unit, onError: (String) -> Unit) {
+        viewModelScope.launch {
+            try {
+                apiService.procesarVenta()
+                onSuccess()
+            } catch (e: Exception) {
+                onError(e.message ?: "Error desconocido")
+            }
+        }
+    }
+
+    fun finalizarVenta(onSuccess: () -> Unit, onError: (String) -> Unit) {
+        viewModelScope.launch {
+            try {
+                apiService.generarTicket()
+                apiService.procesarVenta()
+                onSuccess()
+            } catch (e: Exception) {
+                onError(e.message ?: "Error desconocido")
+            }
+        }
+    }
+
+
 }

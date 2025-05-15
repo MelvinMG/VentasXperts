@@ -169,13 +169,13 @@ class VentaViewSet(viewsets.ModelViewSet):
         finanzas = Finanzas.objects.create(fecha=fecha_actual.date(), hora=fecha_actual.time())
 
         # Funcion para comprobar el usuario en sesion y capturar su id
-        user = User.objects.get(username=request.user)
-        caja_actual = Caja.objects.get(user=user)
+        #user = User.objects.get(username=request.user)
+        #caja_actual = Caja.objects.get(user=1)
 
         # Crear la venta
         venta = Venta.objects.create(
             carrito=Carrito.objects.create(precio_total=total_costo),
-            caja=caja_actual,  # Se asume que el usuario tiene una caja asociada
+            #caja=caja_actual,  # Se asume que el usuario tiene una caja asociada
             finanzas=finanzas,
             total=total_costo,
             fecha=fecha_actual
@@ -185,8 +185,10 @@ class VentaViewSet(viewsets.ModelViewSet):
         detalle_venta = "\n".join(
             [f"Producto: {cp.producto.nombre}, Cantidad: {cp.cantidad}" for cp in carrito_productos]
         )
+        
+        
         Bitacora.objects.create(
-            usuario=user,
+            #usuario=user,
             rol="Cajero",  # Puedes ajustar el rol según sea necesario
             accion="purchase",
             detalle=f"Venta procesada. Productos vendidos:\n{detalle_venta}"

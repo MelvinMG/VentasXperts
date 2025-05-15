@@ -64,11 +64,19 @@ fun TicketScreen(
                     Button(
                         colors = ButtonDefaults.buttonColors(containerColor = Color.DarkGray),
                         onClick = {
-                            onNavigationSelected("caja")
+                            ventasViewModel.finalizarVenta(
+                                onSuccess = { onNavigationSelected("caja") },
+                                onError = { message ->
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar("Error al finalizar venta: $message")
+                                    }
+                                }
+                            )
                         }
                     ) {
                         Text("Finalizar venta", color = Color.White)
                     }
+
                     Button(
                         colors = ButtonDefaults.buttonColors(
                             containerColor = colorResource(id = R.color.BlueStrong)

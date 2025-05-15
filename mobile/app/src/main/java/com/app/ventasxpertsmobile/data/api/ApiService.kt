@@ -27,6 +27,9 @@ interface ApiService {
     @GET("caja/tickets/historial/")
     fun getHistorialTickets(): Call<List<Ticket>>
 
+    @POST("caja/tickets/generar_ticket/")
+    suspend fun generarTicket()
+
     @GET("caja/carritoProducto/")
     suspend fun getCarritoProductos(): CarritoProductoResponse
 
@@ -41,4 +44,7 @@ interface ApiService {
 
     @POST("caja/carritoProducto/vaciar/")
     suspend fun vaciarCarrito()
+
+    @POST("caja/ventas/procesar_venta/")
+    suspend fun procesarVenta()
 }
