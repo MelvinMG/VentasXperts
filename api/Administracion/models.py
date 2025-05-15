@@ -141,7 +141,7 @@ class CarritoProducto(models.Model):
 #? Tabla de Carrito_x_Producto le pertenece a Caja
 class Venta(models.Model):
     carrito = models.ForeignKey(Carrito, on_delete=models.CASCADE)
-    caja = models.ForeignKey('Caja', on_delete=models.CASCADE)
+    caja = models.ForeignKey('Caja', on_delete=models.CASCADE, null=True) # Se asume que la caja es opcional
     finanzas = models.ForeignKey('Finanzas', on_delete=models.CASCADE)
     total = models.DecimalField(max_digits=10, decimal_places=2)
     fecha = models.DateTimeField()
