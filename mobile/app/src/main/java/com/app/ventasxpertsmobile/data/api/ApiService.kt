@@ -2,6 +2,7 @@ package com.app.ventasxpertsmobile.data.api
 
 
 import com.app.ventasxpertsmobile.data.model.Usuario
+import com.app.ventasxpertsmobile.data.model.Ticket
 import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -21,5 +22,7 @@ interface ApiService {
     @GET("catalogo/tiendas/")
     fun getTiendas(): Call<TiendaResponse>
 
+    @GET("caja/tickets/historial/")
+    fun getHistorialTickets(): Call<List<Ticket>>
 
 }

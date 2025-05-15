@@ -20,25 +20,33 @@ import androidx.compose.ui.unit.sp
 import com.app.ventasxpertsmobile.R
 import kotlinx.coroutines.launch
 import com.app.ventasxpertsmobile.ui.templates.BaseScreen
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
+
+import android.content.Intent
+import android.content.ActivityNotFoundException
+import android.net.Uri
+import androidx.compose.ui.platform.LocalContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HistorialTicketsScreen(
     onLogout: () -> Unit = {},
-    onNavigationSelected: (String) -> Unit = {}
+    onNavigationSelected: (String) -> Unit = {},
+    viewModel: CajaViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
-    val tickets = listOf(
-        TicketInfo("Ticket_202412021982392892192", "02/12/2024 11:10:49"),
-        TicketInfo("Ticket_202412021982392892193", "02/12/2024 11:10:49"),
-        TicketInfo("Ticket_202412021982392892194", "02/12/2024 11:10:49"),
-        TicketInfo("Ticket_202412021982392892195", "02/12/2024 11:10:49"),
-        TicketInfo("Ticket_202412021982392892193", "02/12/2024 11:10:49"),
-        TicketInfo("Ticket_202412021982392892194", "02/12/2024 11:10:49"),
-        TicketInfo("Ticket_202412021982392892195", "02/12/2024 11:10:49")
-    )
+    val tickets by viewModel.tickets.collectAsStateWithLifecycle()
+    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
+    val error by viewModel.error.collectAsStateWithLifecycle()
+
+    LaunchedEffect(Unit) {
+        viewModel.cargarHistorialTickets()
+    }
 
     BaseScreen(
         title = "Historial de Ventas",
@@ -49,61 +57,91 @@ fun HistorialTicketsScreen(
             snackbarHost = { SnackbarHost(snackbarHostState) },
             modifier = Modifier.padding(innerPadding)
         ) { scaffoldPadding ->
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(scaffoldPadding)
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(tickets) { ticket ->
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        elevation = CardDefaults.cardElevation(2.dp)
+
+            when {
+                isLoading -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
+                    }
+                }
+
+                error != null -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text(text = error ?: "Error", color = Color.Red)
+                    }
+                }
+
+                else -> {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(scaffoldPadding)
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Text(
-                                text = ticket.nombre,
-                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-                            )
-                            Text(
-                                text = "Fecha: ${ticket.fecha}",
-                                fontSize = 13.sp,
-                                color = Color.Gray
-                            )
-
-                            Spacer(modifier = Modifier.height(12.dp))
-
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 8.dp),
-                                horizontalArrangement = Arrangement.End
+                        items(tickets) { ticket ->
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                elevation = CardDefaults.cardElevation(2.dp)
                             ) {
-                                Button(
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = colorResource(id = R.color.BlueStrong)
-                                    ),
-                                    onClick = { /* Ver ticket */ }
-                                ) {
-                                    Icon(Icons.Default.Visibility, contentDescription = null)
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text("Ver")
-                                }
-                                Spacer(modifier = Modifier.width(16.dp))
-                                Button(
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = colorResource(id = R.color.GreenStrong)
-                                    ),
-                                    onClick = {
-                                        scope.launch {
-                                            snackbarHostState.showSnackbar("Descarga completa")
+                                Column(modifier = Modifier.padding(16.dp)) {
+                                    Text(
+                                        text = ticket.name,
+                                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                                    )
+                                    Text(
+                                        text = "Fecha: ${ticket.creation_time}",
+                                        fontSize = 13.sp,
+                                        color = Color.Gray
+                                    )
+
+                                    Spacer(modifier = Modifier.height(12.dp))
+
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.End
+                                    ) {
+                                        Button(
+                                            colors = ButtonDefaults.buttonColors(
+                                                containerColor = colorResource(id = R.color.BlueStrong)
+                                            ),
+                                            onClick = {
+                                                val fullUrl = "http://192.168.1.20:8000${ticket.path}"
+
+                                                val intent = Intent(Intent.ACTION_VIEW).apply {
+                                                    setDataAndType(Uri.parse(fullUrl), "application/pdf")
+                                                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                                                }
+
+                                                try {
+                                                    context.startActivity(intent)
+                                                } catch (e: ActivityNotFoundException) {
+                                                    scope.launch {
+                                                        snackbarHostState.showSnackbar("No se encontró una app para abrir el PDF.")
+                                                    }
+                                                }
+                                            }
+                                        ) {
+                                            Icon(Icons.Default.Visibility, contentDescription = null)
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                            Text("Ver")
+                                        }
+                                        Spacer(modifier = Modifier.width(16.dp))
+                                        Button(
+                                            colors = ButtonDefaults.buttonColors(
+                                                containerColor = colorResource(id = R.color.GreenStrong)
+                                            ),
+                                            onClick = {
+                                                scope.launch {
+                                                    snackbarHostState.showSnackbar("Descarga completa")
+                                                }
+                                            }
+                                        ) {
+                                            Icon(Icons.Default.Download, contentDescription = null)
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                            Text("Descargar")
                                         }
                                     }
-                                ) {
-                                    Icon(Icons.Default.Download, contentDescription = null)
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text("Descargar")
                                 }
                             }
                         }
@@ -114,5 +152,4 @@ fun HistorialTicketsScreen(
     }
 }
 
-data class TicketInfo(val nombre: String, val fecha: String)
 
