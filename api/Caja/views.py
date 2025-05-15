@@ -139,6 +139,16 @@ class CarritoProductoViewSet(viewsets.ModelViewSet):
         carrito_producto = get_object_or_404(CarritoProducto, producto_id=pk)
         carrito_producto.delete()
         return Response({'message': 'Producto eliminado del carrito'}, status=status.HTTP_200_OK)
+    
+    @action(detail=False, methods=['post'])
+    def vaciar(self, request):
+        """Vacía el carrito"""
+        carrito_productos = CarritoProducto.objects.all()
+        if not carrito_productos.exists():
+            return Response({'message': 'El carrito ya está vacío'}, status=status.HTTP_400_BAD_REQUEST)
+
+        carrito_productos.delete()
+        return Response({'message': 'Carrito vacío'}, status=status.HTTP_200_OK)
 
 
 class VentaViewSet(viewsets.ModelViewSet):
