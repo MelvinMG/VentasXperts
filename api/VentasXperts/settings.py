@@ -145,3 +145,7 @@ MESSAGE_TAGS = {
     message_constants.WARNING: 'warning',   # mensaje de advertencia  
     message_constants.ERROR: 'danger',      # mensaje de error
 }
+
+# Configuracion de multimedia
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'

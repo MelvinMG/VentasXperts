@@ -24,6 +24,8 @@ class Persona(models.Model):
     telefono = models.CharField(max_length=15)
     rfc=models.CharField(max_length=100)
     curp=models.CharField(max_length=100)
+    foto = models.ImageField(upload_to='perfil_fotos/', blank=True, null=True)
+   
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

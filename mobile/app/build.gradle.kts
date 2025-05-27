@@ -66,7 +66,8 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.material.icons.extended)
 
-
+    implementation (libs.coil.compose.v222)
+    implementation (libs.logging.interceptor)
 
 
 
