@@ -9,6 +9,8 @@ env/
 # No ignorar estos archivos específicos
 !**/migrations/__init__.py
 !**/migrations/__pycache__/
+__pycache__/
+*.pyc
 
 # Ignore database
 api/db.sqlite3
