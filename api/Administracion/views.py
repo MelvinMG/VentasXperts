@@ -1,27 +1,14 @@
 from rest_framework import viewsets, status
-from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
 from django.contrib.auth.models import User, Group
 from django.db import transaction
-from rest_framework.exceptions import ValidationError
-
 from .models import Persona
 from .serializers import UserSerializer, PersonaSerializer
 from .permissions import IsRoleUser
 from .adapters import UserAdapter
-
-from django.contrib.auth import authenticate, login, logout
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
-
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -35,16 +22,31 @@ class UserViewSet(viewsets.ModelViewSet):
             permission_classes = [IsAuthenticated]
         return [permission() for permission in permission_classes]
 
+    @transaction.atomic
+    def retrieve(self, request, pk=None):
+        try:
+            user = User.objects.get(pk=pk)
+            persona = Persona.objects.filter(user=user).first()
+            user_data = UserSerializer(user, context={'request': request}).data
 
-    # Verificacion de roles para cada usuario
+            roles = user.groups.values_list('name', flat=True)
+            user_data['roles'] = list(roles)
+
+            if persona:
+                user_data.update(PersonaSerializer(persona, context={'request': request}).data)
+
+            return Response(user_data, status=status.HTTP_200_OK)
+
+        except User.DoesNotExist:
+            return Response({'detail': 'Usuario no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+
     @action(detail=False, methods=['get'], url_path='me')
     def me(self, request):
         user = request.user
         roles = user.groups.values_list('name', flat=True)
 
-        # Acceder a la relación OneToOne con Persona
         try:
-            persona = user.persona  # gracias a related_name="persona"
+            persona = user.persona
             nombre = persona.nombre
             apPaterno = persona.apPaterno
         except Persona.DoesNotExist:
@@ -61,8 +63,6 @@ class UserViewSet(viewsets.ModelViewSet):
         }
         return Response(data)
 
-
-    @transaction.atomic
     @action(detail=False, methods=['get'])
     def list_users(self, request):
         if not request.user.groups.filter(name='Administrador').exists():
@@ -72,20 +72,16 @@ class UserViewSet(viewsets.ModelViewSet):
         for user in User.objects.all():
             persona = Persona.objects.filter(user=user).first()
             user_data = UserSerializer(user).data
-            
-            # Obtener roles (nombres de grupos) y agregarlos a user_data
             roles = user.groups.values_list('name', flat=True)
             user_data['roles'] = list(roles)
-            
+
             if persona:
                 user_data.update(PersonaSerializer(persona).data)
-            
+
             users_data.append(user_data)
 
         return Response(users_data, status=status.HTTP_200_OK)
 
-
-    @transaction.atomic
     @action(detail=False, methods=['post'])
     def create_user(self, request):
         if not request.user.groups.filter(name='Administrador').exists():
@@ -109,7 +105,6 @@ class UserViewSet(viewsets.ModelViewSet):
         except ValidationError as e:
             return Response(e.detail, status=status.HTTP_400_BAD_REQUEST)
 
-    @transaction.atomic
     @action(detail=True, methods=['put'])
     def update_user(self, request, pk=None):
         user = self.get_object()
@@ -134,7 +129,6 @@ class UserViewSet(viewsets.ModelViewSet):
         except ValidationError as e:
             return Response(e.detail, status=status.HTTP_400_BAD_REQUEST)
 
-    @transaction.atomic
     @action(detail=True, methods=['delete'])
     def delete_user(self, request, pk=None):
         user = self.get_object()
@@ -147,14 +141,8 @@ class UserViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return Response({'detail': f'Error al eliminar: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
 
-    @transaction.atomic
     @action(detail=False, methods=['post'], url_path='assign_role_to_user')
     def assign_role_to_user(self, request):
-        """
-        Asigna un grupo (rol) a un usuario por su nombre de grupo.
-        """
-        print("DATA RECIBIDA:", request.data)
-
         if not request.user.groups.filter(name='Administrador').exists():
             return Response({'detail': 'No tienes permisos para asignar roles.'}, status=status.HTTP_403_FORBIDDEN)
 
@@ -168,7 +156,6 @@ class UserViewSet(viewsets.ModelViewSet):
             user = User.objects.get(username=username)
             group = Group.objects.get(name=group_name)
             user.groups.add(group)
-
             return Response({'detail': f'Rol "{group_name}" asignado correctamente a {username}.'}, status=status.HTTP_200_OK)
 
         except User.DoesNotExist:
@@ -178,7 +165,6 @@ class UserViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return Response({'detail': f'Error al asignar rol: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
 
-    @transaction.atomic
     @action(detail=False, methods=['get'])
     def list_roles(self, request):
         if not request.user.groups.filter(name='Administrador').exists():
@@ -190,7 +176,6 @@ class UserViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return Response({'detail': f'Error al obtener los roles: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
 
-    @transaction.atomic
     @action(detail=False, methods=['post'])
     def create_role(self, request):
         if not request.user.groups.filter(name='Administrador').exists():
@@ -208,7 +193,6 @@ class UserViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return Response({'detail': f'Error al crear el rol: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
 
-    @transaction.atomic
     @action(detail=True, methods=['put'])
     def update_role(self, request, pk=None):
         if not request.user.groups.filter(name='Administrador').exists():
@@ -227,7 +211,6 @@ class UserViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return Response({'detail': f'Error al actualizar el rol: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
 
-    @transaction.atomic
     @action(detail=True, methods=['delete'])
     def delete_role(self, request, pk=None):
         if not request.user.groups.filter(name='Administrador').exists():

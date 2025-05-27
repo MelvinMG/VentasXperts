@@ -22,8 +22,9 @@ import compose.icons.fontawesomeicons.solid.Users
 
 import androidx.compose.runtime.Composable
 
-
 import androidx.compose.runtime.*
+
+import androidx.compose.ui.platform.LocalContext
 
 import coil.compose.AsyncImage
 import com.app.ventasxpertsmobile.data.model.Usuarios
@@ -31,9 +32,10 @@ import com.app.ventasxpertsmobile.data.network.RetrofitClient
 
 import com.app.ventasxpertsmobile.ui.theme.AzulPrincipal
 
-import kotlinx.coroutines.launch
-import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import android.widget.Toast
+
 
 
 @Composable
@@ -43,28 +45,26 @@ fun DetalleUsuarioScreen(
     onNavigationSelected: (String) -> Unit = {}
 ) {
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-
     var usuario by remember { mutableStateOf<Usuarios?>(null) }
     var isLoading by remember { mutableStateOf(true) }
     var errorMsg by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(userId) {
-        scope.launch {
-            try {
-                val response = RetrofitClient.api.getUsuarioById(userId).execute()
-                if (response.isSuccessful) {
-                    usuario = response.body()
-                } else {
-                    errorMsg = "Error ${response.code()}: ${response.message()}"
-                    Toast.makeText(context, errorMsg, Toast.LENGTH_LONG).show()
-                }
-            } catch (e: Exception) {
-                errorMsg = e.localizedMessage ?: "Error desconocido"
-                Toast.makeText(context, errorMsg, Toast.LENGTH_LONG).show()
-            } finally {
-                isLoading = false
+        try {
+            val response = withContext(Dispatchers.IO) {
+                RetrofitClient.api.getUsuarioById(userId).execute()
             }
+            if (response.isSuccessful) {
+                usuario = response.body()
+            } else {
+                errorMsg = "Error ${response.code()}: ${response.message()}"
+                Toast.makeText(context, errorMsg, Toast.LENGTH_LONG).show()
+            }
+        } catch (e: Exception) {
+            errorMsg = e.localizedMessage ?: "Error desconocido"
+            Toast.makeText(context, errorMsg, Toast.LENGTH_LONG).show()
+        } finally {
+            isLoading = false
         }
     }
 
@@ -110,10 +110,9 @@ fun UsuarioDetalleContent(usuario: Usuarios) {
                         .size(90.dp)
                         .clip(CircleShape),
                     contentScale = ContentScale.Crop,
-                    placeholder = painterResource(id = R.drawable.ic_default_user), // imagen local para carga
-                    error = painterResource(id = R.drawable.ic_default_user) // si la URL falla
+                    placeholder = painterResource(id = R.drawable.ic_default_user),
+                    error = painterResource(id = R.drawable.ic_default_user)
                 )
-
             } else {
                 Icon(
                     imageVector = FontAwesomeIcons.Solid.Users,
@@ -123,11 +122,20 @@ fun UsuarioDetalleContent(usuario: Usuarios) {
                 )
             }
         }
+
         Spacer(Modifier.height(10.dp))
-        Text(usuario.nombreCompleto, fontWeight = FontWeight.Bold, fontSize = 20.sp, modifier = Modifier.align(Alignment.CenterHorizontally))
-        Text(usuario.email, modifier = Modifier.align(Alignment.CenterHorizontally))
+
+        Text(
+            usuario.nombreCompleto,
+            fontWeight = FontWeight.Bold,
+            fontSize = 20.sp,
+            modifier = Modifier.align(Alignment.CenterHorizontally)
+        )
+        Text(usuario.email.ifEmpty { "Sin correo" }, modifier = Modifier.align(Alignment.CenterHorizontally))
         Text(usuario.rol, modifier = Modifier.align(Alignment.CenterHorizontally))
+
         Spacer(Modifier.height(12.dp))
+
         Button(
             onClick = { /* TODO: Cambiar rol */ },
             modifier = Modifier.fillMaxWidth(),
@@ -135,10 +143,11 @@ fun UsuarioDetalleContent(usuario: Usuarios) {
         ) {
             Text("Cambiar Rol")
         }
+
         Spacer(Modifier.height(12.dp))
         Text("Detalles de la cuenta", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-        // Aquí agrega campos que quieras mostrar. Por ejemplo:
-        Text("Registrado en:\n${usuario.fecha}")
+
+        Text("Registrado en:\n${usuario.fecha.ifEmpty { "Fecha no disponible" }}")
         Text("Nombre completo:\n${usuario.nombreCompleto}")
         Text("Género: ${usuario.persona?.genero ?: "No especificado"}")
         Text("Teléfono: ${usuario.persona?.telefono ?: "No especificado"}")
@@ -147,9 +156,9 @@ fun UsuarioDetalleContent(usuario: Usuarios) {
 
         Spacer(Modifier.height(16.dp))
         Text("Acciones de la cuenta", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-        ActionRow("Editar usuario") { /* TODO: Navegar o dialogo editar */ }
-        ActionRow("Cambiar rol") { /* TODO: Navegar o dialogo rol */ }
-        ActionRow("Eliminar usuario") { /* TODO: Confirmar y eliminar */ }
+        ActionRow("Editar usuario") { /* TODO: Implementar */ }
+        ActionRow("Cambiar rol") { /* TODO: Implementar */ }
+        ActionRow("Eliminar usuario") { /* TODO: Implementar */ }
     }
 }
 
