@@ -80,6 +80,7 @@ class ProveedorSerializer(serializers.Serializer):
 
 # Serializer para Producto
 class ProductoSerializer(serializers.Serializer):
+    id = serializers.IntegerField(read_only=True)
     codigo = serializers.CharField(required=True)
     nombre = serializers.CharField(required=True)
     categoria = serializers.PrimaryKeyRelatedField(queryset=Categoria.objects.all())
@@ -136,7 +137,10 @@ class CarritoSerializer(serializers.Serializer):
 # Serializer para CarritoProducto
 class CarritoProductoSerializer(serializers.Serializer):
     carrito = serializers.PrimaryKeyRelatedField(queryset=Carrito.objects.all())
-    producto = serializers.PrimaryKeyRelatedField(queryset=Producto.objects.all())
+    producto = ProductoSerializer(read_only=True)  # Detalles del producto anidados
+    producto_id = serializers.PrimaryKeyRelatedField(
+        queryset=Producto.objects.all(), source='producto', write_only=True
+    )
     cantidad = serializers.IntegerField()
     subtotal = serializers.DecimalField(max_digits=10, decimal_places=2)
 

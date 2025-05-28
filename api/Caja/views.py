@@ -82,32 +82,26 @@ class UserViewSet(viewsets.ViewSet):
 class CajaViewSet(viewsets.ModelViewSet):
     queryset = Caja.objects.all()
     serializer_class = CajaSerializer
-    permission_classes = [IsCajero]
 
 class ProductoViewSet(viewsets.ModelViewSet):
     queryset = Producto.objects.all()
     serializer_class = ProductoSerializer
-    permission_classes = [IsCajero]
     
 class CategoriaViewSet(viewsets.ModelViewSet):
     queryset = Categoria.objects.all()
     serializer_class = CategoriaSerializer
-    permission_classes = [IsCajero]
     
 class ProveedorViewSet(viewsets.ModelViewSet):
     queryset = Proveedor.objects.all()
     serializer_class = ProveedorSerializer
-    permission_classes = [IsCajero]
     
 class carritoViewSet(viewsets.ModelViewSet):
     queryset = Carrito.objects.all()
     serializer_class = CarritoSerializer
-    permission_classes = [IsCajero]
     
 class CarritoProductoViewSet(viewsets.ModelViewSet):
     queryset = CarritoProducto.objects.select_related('producto').all()
     serializer_class = CarritoProductoSerializer
-    permission_classes = [IsCajero]
 
     @action(detail=True, methods=['post'])
     def agregar(self, request, pk=None):
@@ -145,12 +139,21 @@ class CarritoProductoViewSet(viewsets.ModelViewSet):
         carrito_producto = get_object_or_404(CarritoProducto, producto_id=pk)
         carrito_producto.delete()
         return Response({'message': 'Producto eliminado del carrito'}, status=status.HTTP_200_OK)
+    
+    @action(detail=False, methods=['post'])
+    def vaciar(self, request):
+        """Vacía el carrito"""
+        carrito_productos = CarritoProducto.objects.all()
+        if not carrito_productos.exists():
+            return Response({'message': 'El carrito ya está vacío'}, status=status.HTTP_400_BAD_REQUEST)
+
+        carrito_productos.delete()
+        return Response({'message': 'Carrito vacío'}, status=status.HTTP_200_OK)
 
 
 class VentaViewSet(viewsets.ModelViewSet):
     queryset = Venta.objects.all()
     serializer_class = VentaSerializer
-    permission_classes = [IsCajero]
 
     @action(detail=False, methods=['post'])
     def procesar_venta(self, request):
@@ -166,13 +169,13 @@ class VentaViewSet(viewsets.ModelViewSet):
         finanzas = Finanzas.objects.create(fecha=fecha_actual.date(), hora=fecha_actual.time())
 
         # Funcion para comprobar el usuario en sesion y capturar su id
-        user = User.objects.get(username=request.user)
-        caja_actual = Caja.objects.get(user=user)
+        #user = User.objects.get(username=request.user)
+        #caja_actual = Caja.objects.get(user=1)
 
         # Crear la venta
         venta = Venta.objects.create(
             carrito=Carrito.objects.create(precio_total=total_costo),
-            caja=caja_actual,  # Se asume que el usuario tiene una caja asociada
+            #caja=caja_actual,  # Se asume que el usuario tiene una caja asociada
             finanzas=finanzas,
             total=total_costo,
             fecha=fecha_actual
@@ -182,8 +185,10 @@ class VentaViewSet(viewsets.ModelViewSet):
         detalle_venta = "\n".join(
             [f"Producto: {cp.producto.nombre}, Cantidad: {cp.cantidad}" for cp in carrito_productos]
         )
+        
+        
         Bitacora.objects.create(
-            usuario=user,
+            #usuario=user,
             rol="Cajero",  # Puedes ajustar el rol según sea necesario
             accion="purchase",
             detalle=f"Venta procesada. Productos vendidos:\n{detalle_venta}"
@@ -196,7 +201,6 @@ class VentaViewSet(viewsets.ModelViewSet):
 
 
 class TicketViewSet(viewsets.ViewSet):
-    permission_classes = [IsCajero]
     
     @action(detail=False, methods=['get'])
     def historial(self, request):

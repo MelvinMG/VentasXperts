@@ -14,30 +14,46 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.app.ventasxpertsmobile.ui.templates.BaseScreen
+import com.app.ventasxpertsmobile.data.model.Tienda
+import com.app.ventasxpertsmobile.data.model.Producto
+
+@Composable
+fun TiendaProductosScreen(
+    tiendaId: Int,
+    onLogout: () -> Unit = {},
+    onNavigationSelected: (String) -> Unit = {},
+    viewModel: CatalogoViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+) {
+    // Observar la tienda seleccionada desde el ViewModel
+    val tienda = viewModel.getTiendaById(tiendaId)
+
+    if (tienda == null) {
+        // Mostrar loading o mensaje si no está disponible aún
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+        return
+    }
+
+    // Mostrar pantalla con la tienda cargada
+    TiendaProductosContent(
+        tienda = tienda,
+        onLogout = onLogout,
+        onNavigationSelected = onNavigationSelected
+    )
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TiendaProductosScreen(
-    onLogout: () -> Unit = {},
-    onNavigationSelected: (String) -> Unit = {}
+fun TiendaProductosContent(
+    tienda: Tienda,
+    onLogout: () -> Unit,
+    onNavigationSelected: (String) -> Unit
 ) {
-    val productos = listOf(
-        ProductoTienda("Producto 1", 100.00),
-        ProductoTienda("Producto 2", 100.00),
-        ProductoTienda("Producto 3", 100.00),
-        ProductoTienda("Producto 4", 100.00),
-        ProductoTienda("Producto 5", 100.00),
-        ProductoTienda("Producto 2", 100.00),
-        ProductoTienda("Producto 3", 100.00),
-        ProductoTienda("Producto 4", 100.00),
-        ProductoTienda("Producto 1", 100.00),
-        ProductoTienda("Producto 2", 100.00),
-        ProductoTienda("Producto 3", 100.00),
-        ProductoTienda("Producto 4", 100.00)
-    )
+    val productos = tienda.productos
 
     BaseScreen(
-        title = "Productos",
+        title = tienda.nombre,
         onLogout = onLogout,
         onNavigationSelected = onNavigationSelected
     ) { innerPadding ->
@@ -50,30 +66,13 @@ fun TiendaProductosScreen(
                     .padding(scaffoldPadding)
                     .padding(horizontal = 16.dp)
             ) {
-                // Información de la tienda
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 4.dp)
-                ) {
-                    Text(
-                        text = "Tienda 1 ejemplo",
-                        fontSize = 22.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(start = 4.dp)
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(4.dp))
-
+                // Descripción de la tienda
                 Text(
-                    "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor. jksjk jsakjskajs aksjaksjaksjak aksamksjak aksjaksjak.",
+                    text = tienda.descripcion,
                     fontSize = 14.sp,
-                    color = Color.DarkGray
+                    color = Color.DarkGray,
+                    modifier = Modifier.padding(vertical = 8.dp)
                 )
-
-                Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
                     "Productos disponibles",
@@ -97,33 +96,26 @@ fun TiendaProductosScreen(
 }
 
 @Composable
-fun ProductoCard(producto: ProductoTienda) {
+fun ProductoCard(producto: Producto) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = Color(0xFFF2F2F2))
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column {
                 Text(producto.nombre, fontSize = 16.sp, fontWeight = FontWeight.Medium)
-                Text("Precio: MNX ${"%.2f".format(producto.precio)}", fontSize = 14.sp, color = Color.Gray)
+                Text("Precio: MXN ${producto.precio_tienda}", fontSize = 14.sp, color = Color.Gray)
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Icon(
-                    imageVector = Icons.Default.Inventory,
-                    contentDescription = "Producto",
-                    tint = Color.Gray,
-                    modifier = Modifier.size(24.dp)
-                )
-
-            }
+            Icon(
+                imageVector = Icons.Default.Inventory,
+                contentDescription = "Producto",
+                tint = Color.Gray,
+                modifier = Modifier.size(24.dp)
+            )
         }
     }
 }
-
-data class ProductoTienda(val nombre: String, val precio: Double)

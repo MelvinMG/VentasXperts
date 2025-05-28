@@ -27,6 +27,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import android.widget.Toast
+import com.app.ventasxpertsmobile.data.model.AssignRole
 
 @Composable
 fun DetalleUsuarioScreen(
@@ -44,7 +45,12 @@ fun DetalleUsuarioScreen(
     var showResultDialog by remember { mutableStateOf(false) }
     var resultMessage by remember { mutableStateOf("") }
 
-    // Carga usuario por ID desde API usando suspend
+    // Modal para asignar rol
+    var showAssignRoleDialog by remember { mutableStateOf(false) }
+    var selectedRole by remember { mutableStateOf<String?>(null) }
+    val roles = listOf("Administrador", "Gerente", "Cajero")
+
+    // Cargar usuario
     LaunchedEffect(userId) {
         isLoading = true
         errorMsg = null
@@ -71,6 +77,7 @@ fun DetalleUsuarioScreen(
         onLogout = onLogout,
         onNavigationSelected = onNavigationSelected
     ) { innerPadding ->
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -83,11 +90,77 @@ fun DetalleUsuarioScreen(
                 usuario != null -> UsuarioDetalleContent(
                     usuario = usuario!!,
                     onEditUser = { onNavigationSelected("EditarUsuario/${usuario!!.id}") },
-                    onChangeRole = { onNavigationSelected("CambiarRol/${usuario!!.id}") },
+                    onChangeRole = { showAssignRoleDialog = true },
                     onDeleteUserClicked = { showDeleteConfirm = true }
                 )
                 else -> Text("Usuario no encontrado")
             }
+        }
+
+        if (showAssignRoleDialog && usuario != null) {
+            AlertDialog(
+                onDismissRequest = { showAssignRoleDialog = false },
+                title = { Text("Asignar Rol") },
+                text = {
+                    Column {
+                        roles.forEach { role ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { selectedRole = role }
+                                    .padding(8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                RadioButton(
+                                    selected = (selectedRole == role),
+                                    onClick = { selectedRole = role }
+                                )
+                                Spacer(Modifier.width(8.dp))
+                                Text(role)
+                            }
+                        }
+                    }
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            if (selectedRole != null) {
+                                scope.launch {
+                                    try {
+                                        val response = RetrofitClient.api.assignRoleToUser(
+                                            AssignRole(
+                                                username = usuario!!.username,
+                                                group_name = selectedRole
+                                            )
+                                        )
+                                        if (response.isSuccessful) {
+                                            resultMessage = "Rol asignado correctamente"
+                                            // Actualizar usuario con rol nuevo
+                                            val refreshed = RetrofitClient.api.getUsuarioById(usuario!!.id)
+                                            if (refreshed.isSuccessful) {
+                                                usuario = refreshed.body()
+                                            }
+                                        } else {
+                                            resultMessage = "Error al asignar rol: ${response.code()}"
+                                        }
+                                    } catch (e: Exception) {
+                                        resultMessage = "Error de red: ${e.localizedMessage ?: e.message}"
+                                    }
+                                    showResultDialog = true
+                                    showAssignRoleDialog = false
+                                }
+                            }
+                        }
+                    ) {
+                        Text("Asignar")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showAssignRoleDialog = false }) {
+                        Text("Cancelar")
+                    }
+                }
+            )
         }
 
         if (showDeleteConfirm && usuario != null) {

@@ -7,7 +7,8 @@ class IsCajero(BasePermission):
     """
 
     def has_permission(self, request, view):
-        return request.user and request.user.is_authenticated and request.user.groups.filter(id=3).exists()
+        allowed_roles = ['Cajero']
+        return request.user and request.user.groups.filter(name__in=allowed_roles).exists()
     
 class IsAdministrador(BasePermission):
     """
