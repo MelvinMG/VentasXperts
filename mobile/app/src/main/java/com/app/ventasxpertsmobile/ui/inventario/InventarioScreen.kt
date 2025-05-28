@@ -162,9 +162,11 @@ fun ProductoCard(
                 IconButton(onClick = onAgregar) {
                     Icon(Icons.Default.AddCircle, contentDescription = "Agregar", tint = AzulPrincipal, modifier = Modifier.size(28.dp))
                 }
+                /*
                 IconButton(onClick = onEditar) {
                     Icon(Icons.Default.Edit, contentDescription = "Editar", tint = AzulPrincipal, modifier = Modifier.size(28.dp))
                 }
+                */
                 IconButton(onClick = onEliminar) {
                     Icon(Icons.Default.Delete, contentDescription = "Eliminar", tint = Color.Red, modifier = Modifier.size(28.dp))
                 }
