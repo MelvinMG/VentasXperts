@@ -106,7 +106,7 @@ fun HistorialTicketsScreen(
                                                 containerColor = colorResource(id = R.color.BlueStrong)
                                             ),
                                             onClick = {
-                                                val fullUrl = "http://192.168.1.20:8000${ticket.path}"
+                                                val fullUrl = "http://10.0.2.2:8000${ticket.path}"
 
                                                 val intent = Intent(Intent.ACTION_VIEW).apply {
                                                     setDataAndType(Uri.parse(fullUrl), "application/pdf")
