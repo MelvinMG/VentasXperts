@@ -1,6 +1,9 @@
 package com.app.ventasxpertsmobile.ui.usuarios
 
-import androidx.compose.foundation.Image
+import com.app.ventasxpertsmobile.R
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -20,6 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.app.ventasxpertsmobile.data.model.Usuarios
 import com.app.ventasxpertsmobile.ui.templates.BaseScreen
 import com.app.ventasxpertsmobile.ui.theme.*
 import compose.icons.FontAwesomeIcons
@@ -31,20 +35,11 @@ import compose.icons.fontawesomeicons.solid.ThLarge
 import compose.icons.fontawesomeicons.solid.Search
 import compose.icons.fontawesomeicons.solid.UserPlus
 import compose.icons.fontawesomeicons.solid.UserEdit
+import android.widget.Toast
+import androidx.compose.ui.platform.LocalContext
+import com.app.ventasxpertsmobile.data.network.RetrofitClient
+import coil.compose.AsyncImage
 
-// Demo data class
-data class Usuario(
-    val id: Int,
-    val nombre: String,
-    val rol: String,
-    val fecha: String,
-    val foto: Int? = null // Usa recurso drawable opcional
-)
-
-// Datos demo
-val usuariosDemo = List(8) {
-    Usuario(it, "Nombre de Usuario", "Administrador", "##-##-## HH:MM")
-}
 
 @Composable
 fun UsuariosScreen(
@@ -53,15 +48,40 @@ fun UsuariosScreen(
     onVerDetalles: (Int) -> Unit,
     onAniadirUsuario: () -> Unit
 ) {
+    val context = LocalContext.current
+
     var modoMosaico by remember { mutableStateOf(false) }
     var query by remember { mutableStateOf("") }
     var filtroRol by remember { mutableStateOf<String?>(null) }
     var filtroOrden by remember { mutableStateOf<String?>(null) }
     var filtroVisible by remember { mutableStateOf(false) }
+    var usuariosApi by remember { mutableStateOf<List<Usuarios>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(true) }
+    var errorMsg by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(Unit) {
+        try {
+            val response = withContext(Dispatchers.IO) {
+                RetrofitClient.api.getUsuarios().execute()
+            }
+            if (response.isSuccessful) {
+                usuariosApi = response.body() ?: emptyList()
+            } else {
+                errorMsg = "Error servidor: ${response.code()}"
+                Toast.makeText(context, errorMsg, Toast.LENGTH_LONG).show()
+            }
+        } catch (e: Exception) {
+            errorMsg = e.message ?: "Error desconocido"
+            Toast.makeText(context, errorMsg, Toast.LENGTH_LONG).show()
+        } finally {
+            isLoading = false
+        }
+    }
 
-    val usuarios = usuariosDemo.filter {
-        (query.isBlank() || it.nombre.contains(query, ignoreCase = true)) &&
-                (filtroRol == null || it.rol == filtroRol)
+    val usuariosFiltrados = usuariosApi.filter {
+        val nombre = it.nombreCompleto
+        val rol = it.rol
+        (query.isBlank() || nombre.contains(query, ignoreCase = true)) &&
+                (filtroRol == null || rol == filtroRol)
     }
 
     BaseScreen(
@@ -110,7 +130,7 @@ fun UsuariosScreen(
                     textStyle = MaterialTheme.typography.bodyMedium.copy(color = TextoInput)
                 )
                 Spacer(Modifier.width(8.dp))
-                IconButton(onClick = { onAniadirUsuario()  }) {
+                IconButton(onClick = { onAniadirUsuario() }) {
                     Icon(
                         imageVector = FontAwesomeIcons.Solid.UserPlus,
                         contentDescription = "Agregar usuario",
@@ -192,25 +212,28 @@ fun UsuariosScreen(
                 }
             }
 
-            // Lista/Mosaico de usuarios
-            if (modoMosaico) {
-                // MOSAICO
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(4.dp)
-                ) {
-                    items(usuarios.size) { idx ->
-                        UsuarioCardMosaico(usuario = usuarios[idx], onVerDetalles = onVerDetalles)
-                    }
+            if (isLoading) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
                 }
             } else {
-                // LISTA
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    items(usuarios) { usuario ->
-                        UsuarioCardLista(usuario, onVerDetalles)
+                if (modoMosaico) {
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(2),
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(4.dp)
+                    ) {
+                        items(usuariosFiltrados.size) { idx ->
+                            UsuarioCardMosaico(usuario = usuariosFiltrados[idx], onVerDetalles = onVerDetalles)
+                        }
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        items(usuariosFiltrados) { usuario ->
+                            UsuarioCardLista(usuario, onVerDetalles)
+                        }
                     }
                 }
             }
@@ -218,10 +241,10 @@ fun UsuariosScreen(
     }
 }
 
-// ---- COMPONENTES ----
+// --- COMPONENTES TARJETA ---
 
 @Composable
-fun UsuarioCardLista(usuario: Usuario, onVerDetalles: (Int) -> Unit) {
+fun UsuarioCardLista(usuario: Usuarios, onVerDetalles: (Int) -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -237,7 +260,7 @@ fun UsuarioCardLista(usuario: Usuario, onVerDetalles: (Int) -> Unit) {
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    usuario.nombre,
+                    usuario.nombreCompleto,
                     fontWeight = FontWeight.Bold,
                     style = MaterialTheme.typography.titleMedium,
                     color = AzulPrincipal
@@ -248,7 +271,7 @@ fun UsuarioCardLista(usuario: Usuario, onVerDetalles: (Int) -> Unit) {
                     color = Gris1
                 )
                 Text(
-                    usuario.fecha,
+                    usuario.fecha.ifEmpty { "Fecha no disponible" },
                     style = MaterialTheme.typography.bodySmall,
                     color = Gris1
                 )
@@ -276,8 +299,9 @@ fun UsuarioCardLista(usuario: Usuario, onVerDetalles: (Int) -> Unit) {
     }
 }
 
+
 @Composable
-fun UsuarioCardMosaico(usuario: Usuario, onVerDetalles: (Int) -> Unit) {
+fun UsuarioCardMosaico(usuario: Usuarios, onVerDetalles: (Int) -> Unit) {
     Card(
         modifier = Modifier
             .padding(8.dp)
@@ -296,14 +320,18 @@ fun UsuarioCardMosaico(usuario: Usuario, onVerDetalles: (Int) -> Unit) {
                 modifier = Modifier.fillMaxWidth(),
                 contentAlignment = Alignment.Center
             ) {
-                if (usuario.foto != null) {
-                    Image(
-                        painter = painterResource(id = usuario.foto),
+                val fotoUrl = usuario.persona?.fotoUrl
+
+                if (!fotoUrl.isNullOrEmpty()) {
+                    AsyncImage(
+                        model = fotoUrl,
                         contentDescription = "Foto usuario",
                         modifier = Modifier
                             .size(48.dp)
                             .clip(CircleShape),
-                        contentScale = ContentScale.Crop
+                        contentScale = ContentScale.Crop,
+                        placeholder = painterResource(id = R.drawable.ic_default_user), // Recurso por defecto local
+                        error = painterResource(id = R.drawable.ic_default_user)
                     )
                 } else {
                     Icon(
@@ -323,7 +351,7 @@ fun UsuarioCardMosaico(usuario: Usuario, onVerDetalles: (Int) -> Unit) {
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(
-                        usuario.nombre,
+                        usuario.nombreCompleto,
                         fontWeight = FontWeight.Bold,
                         color = AzulPrincipal,
                         style = MaterialTheme.typography.titleMedium.copy(fontSize = 12.sp)
@@ -334,10 +362,11 @@ fun UsuarioCardMosaico(usuario: Usuario, onVerDetalles: (Int) -> Unit) {
                         style = MaterialTheme.typography.bodyMedium.copy(fontSize = 12.sp)
                     )
                     Text(
-                        usuario.fecha,
-                        color = Gris1,
-                        style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp)
+                        usuario.fecha.ifEmpty { "Fecha no disponible" },
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Gris1
                     )
+
                 }
                 Button(
                     onClick = { onVerDetalles(usuario.id) },
@@ -357,6 +386,7 @@ fun UsuarioCardMosaico(usuario: Usuario, onVerDetalles: (Int) -> Unit) {
         }
     }
 }
+
 
 @Preview(showBackground = true)
 @Composable

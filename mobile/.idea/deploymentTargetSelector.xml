@@ -4,17 +4,27 @@
     <selectionStates>
       <SelectionState runConfigName="app">
         <option name="selectionMode" value="DROPDOWN" />
+<<<<<<< HEAD
         <DropdownSelection timestamp="2025-05-16T22:32:24.923530600Z">
           <Target type="DEFAULT_BOOT">
             <handle>
               <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\pablo\.android\avd\Pixel_5.avd" />
+=======
+        <DropdownSelection timestamp="2025-05-27T18:16:33.553207700Z">
+          <Target type="DEFAULT_BOOT">
+            <handle>
+              <DeviceId pluginId="PhysicalDevice" identifier="serial=MRHIJNKJO7RG69KB" />
+>>>>>>> e5d3d46e721a8c65c69717ece4b4d0621dee8044
             </handle>
           </Target>
         </DropdownSelection>
         <DialogSelection />
+<<<<<<< HEAD
       </SelectionState>
       <SelectionState runConfigName="PreviewEditarUsuarioScreen">
         <option name="selectionMode" value="DROPDOWN" />
+=======
+>>>>>>> e5d3d46e721a8c65c69717ece4b4d0621dee8044
       </SelectionState>
     </selectionStates>
   </component>

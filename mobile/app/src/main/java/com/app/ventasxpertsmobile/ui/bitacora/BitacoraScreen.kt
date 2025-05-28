@@ -13,12 +13,19 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.app.ventasxpertsmobile.data.model.BitacoraEntry
+import com.app.ventasxpertsmobile.data.model.Bitacora
 import com.app.ventasxpertsmobile.ui.templates.BaseScreen
 import com.app.ventasxpertsmobile.ui.theme.*
+import kotlinx.coroutines.Dispatchers
+
+import kotlinx.coroutines.withContext
+import android.widget.Toast
+import androidx.compose.ui.platform.LocalContext
+import com.app.ventasxpertsmobile.data.network.RetrofitClient
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -26,17 +33,85 @@ fun BitacoraScreen(
     onLogout: () -> Unit = {},
     onNavigationSelected: (String) -> Unit = {}
 ) {
-    // Dummy data
-    val bitacoraList = listOf(
-        BitacoraEntry(1, "Melvin Marín", "Administrador", "Eliminó usuario", "Eliminó usuario \"Pablo Eduardo\"", "22-04-25 15:26"),
-        BitacoraEntry(2, "Melvin Marín", "Administrador", "Actualizó usuario", "Actualizó teléfono de \"Juan Pérez\"", "22-04-25 15:26"),
-        BitacoraEntry(3, "Melvin Marín", "Administrador", "Inició sesión", "Inició sesión como \"melvin_admin\"", "21-04-25 09:10"),
-        BitacoraEntry(4, "Juan Pérez", "Cajero", "Registró venta", "Vendió producto A", "21-04-25 10:05")
+    val context = LocalContext.current
+
+    // Estados para filtros
+    var selectedFecha by remember { mutableStateOf<String?>(null) }  // "YYYY-MM" o null
+    var selectedAccion by remember { mutableStateOf<String?>(null) }
+
+    // Datos y carga
+    var bitacoraList by remember { mutableStateOf<List<Bitacora>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(true) }
+    var errorMsg by remember { mutableStateOf<String?>(null) }
+
+    // Opciones filtro fechas (meses únicos)
+    var fechaList by remember { mutableStateOf<List<String>>(listOf("Todas las fechas")) }
+    // Lista fija de acciones (puedes hacerla dinámica)
+    val accionesMap = mapOf(
+        null to "Todas las acciones",
+        "create" to "Crear",
+        "update" to "Actualizar",
+        "delete" to "Eliminar",
+        "purchase" to "Compra",
+        "login" to "Inicio de sesión",
+        "logout" to "Cierre de sesión"
     )
 
-    val fechaList = listOf("01/04/24", "02/04/24", "03/04/24")
-    val accionesList = listOf("Eliminó usuario", "Actualizó usuario", "Inició sesión", "Registró venta")
-    val usuariosList = listOf("Melvin Marín", "Juan Pérez", "Ana López")
+    val accionesList = accionesMap.values.toList()
+    // Carga inicial con LaunchedEffect para cargar bitácora y fechas únicas
+    fun getAccionKeyByValue(value: String): String? {
+        return accionesMap.entries.find { it.value == value }?.key
+    }
+    LaunchedEffect(selectedFecha, selectedAccion) {
+        isLoading = true
+        errorMsg = null
+        try {
+            val filtroFecha = selectedFecha?.takeIf { it != "Todas las fechas" }
+            val filtroAccion = selectedAccion?.takeIf { it != "Todas las acciones" }?.lowercase()
+
+            val call: retrofit2.Call<List<Bitacora>> = RetrofitClient.api.getBitacora(filtroFecha, filtroAccion)
+            val response: retrofit2.Response<List<Bitacora>> = withContext(Dispatchers.IO) {
+                call.execute()
+            }
+
+            if (response.isSuccessful) {
+                bitacoraList = response.body() ?: emptyList()
+            } else {
+                errorMsg = "Error servidor: ${response.code()}"
+                Toast.makeText(context, errorMsg, Toast.LENGTH_LONG).show()
+            }
+        } catch (e: Exception) {
+            errorMsg = e.message ?: "Error desconocido"
+            Toast.makeText(context, errorMsg, Toast.LENGTH_LONG).show()
+        } finally {
+            isLoading = false
+        }
+    }
+
+
+    // Recargar bitacora cuando filtros cambien
+    LaunchedEffect(selectedFecha, selectedAccion) {
+        isLoading = true
+        errorMsg = null
+        try {
+            val filtroFecha = selectedFecha?.takeIf { it != "Todas las fechas" }
+            val filtroAccion = selectedAccion?.takeIf { it != "Todas las acciones" }?.lowercase()
+            val response = withContext(Dispatchers.IO) {
+                RetrofitClient.api.getBitacora(filtroFecha, filtroAccion).execute()
+            }
+            if (response.isSuccessful) {
+                bitacoraList = response.body() ?: emptyList()
+            } else {
+                errorMsg = "Error servidor: ${response.code()}"
+                Toast.makeText(context, errorMsg, Toast.LENGTH_LONG).show()
+            }
+        } catch (e: Exception) {
+            errorMsg = e.message ?: "Error desconocido"
+            Toast.makeText(context, errorMsg, Toast.LENGTH_LONG).show()
+        } finally {
+            isLoading = false
+        }
+    }
 
     BaseScreen(
         title = "Bitácora",
@@ -51,18 +126,36 @@ fun BitacoraScreen(
         ) {
             BitacoraFiltersButtons(
                 fechaList = fechaList,
+                selectedFecha = selectedFecha ?: "Todas las fechas",
+                onFechaSelected = { selectedFecha = if (it == "Todas las fechas") null else it },
                 accionesList = accionesList,
-                usuariosList = usuariosList
+                selectedAccion = accionesMap[selectedAccion] ?: "Todas las acciones",
+                onAccionSelected = { label ->
+                    selectedAccion = getAccionKeyByValue(label)  }
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.fillMaxSize()
-            ) {
-                items(bitacoraList) { entry ->
-                    BitacoraCard(entry)
+            if (isLoading) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+            } else {
+                if (bitacoraList.isEmpty()) {
+                    Text(
+                        "No hay registros en la bitácora",
+                        modifier = Modifier.align(Alignment.CenterHorizontally),
+                        color = Gris1
+                    )
+                } else {
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        items(bitacoraList) { entry ->
+                            BitacoraCard(entry)
+                        }
+                    }
                 }
             }
         }
@@ -72,17 +165,14 @@ fun BitacoraScreen(
 @Composable
 fun BitacoraFiltersButtons(
     fechaList: List<String>,
+    selectedFecha: String,
+    onFechaSelected: (String) -> Unit,
     accionesList: List<String>,
-    usuariosList: List<String>
+    selectedAccion: String,
+    onAccionSelected: (String) -> Unit
 ) {
-    var selectedFecha by remember { mutableStateOf(fechaList.first()) }
     var expandedFecha by remember { mutableStateOf(false) }
-
-    var selectedAccion by remember { mutableStateOf(accionesList.first()) }
     var expandedAccion by remember { mutableStateOf(false) }
-
-    var selectedUsuario by remember { mutableStateOf(usuariosList.first()) }
-    var expandedUsuario by remember { mutableStateOf(false) }
 
     Row(
         modifier = Modifier
@@ -95,21 +185,14 @@ fun BitacoraFiltersButtons(
             expanded = expandedFecha,
             options = fechaList,
             onExpandedChange = { expandedFecha = it },
-            onSelect = { selectedFecha = it; expandedFecha = false }
+            onSelect = { onFechaSelected(it); expandedFecha = false }
         )
         BitacoraDropdown(
             selected = selectedAccion,
             expanded = expandedAccion,
             options = accionesList,
             onExpandedChange = { expandedAccion = it },
-            onSelect = { selectedAccion = it; expandedAccion = false }
-        )
-        BitacoraDropdown(
-            selected = selectedUsuario,
-            expanded = expandedUsuario,
-            options = usuariosList,
-            onExpandedChange = { expandedUsuario = it },
-            onSelect = { selectedUsuario = it; expandedUsuario = false }
+            onSelect = { onAccionSelected(it); expandedAccion = false }
         )
     }
 }
@@ -128,7 +211,9 @@ fun BitacoraDropdown(
             shape = MaterialTheme.shapes.medium,
             border = BorderStroke(1.dp, AzulPrincipal),
             colors = ButtonDefaults.outlinedButtonColors(containerColor = Blanco1),
-            modifier = Modifier.widthIn(min = 120.dp).height(44.dp)
+            modifier = Modifier
+                .widthIn(min = 140.dp)
+                .height(44.dp)
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically
@@ -157,7 +242,7 @@ fun BitacoraDropdown(
 }
 
 @Composable
-fun BitacoraCard(entry: BitacoraEntry) {
+fun BitacoraCard(entry: Bitacora) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
@@ -174,15 +259,35 @@ fun BitacoraCard(entry: BitacoraEntry) {
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Column {
-                    Text(entry.usuario, fontWeight = FontWeight.Bold, color = AzulPrincipal)
-                    Text(entry.rol, style = MaterialTheme.typography.bodySmall, color = Gris1)
+                    Text(
+                        text = entry.usuario ?: "Desconocido",
+                        fontWeight = FontWeight.Bold,
+                        color = AzulPrincipal
+                    )
+                    Text(
+                        text = entry.rol ?: "Sin rol",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Gris1
+                    )
                 }
             }
             Spacer(modifier = Modifier.height(6.dp))
-            Text("Acción: ${entry.accion}", color = Gris1, fontWeight = FontWeight.SemiBold)
-            Text(entry.detalle, style = MaterialTheme.typography.bodyMedium, color = Gris1)
+            Text(
+                text = "Acción: ${entry.accion?.capitalize() ?: "N/A"}",
+                color = Gris1,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                text = entry.detalle ?: "",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Gris1
+            )
             Spacer(modifier = Modifier.height(3.dp))
-            Text(entry.fecha, style = MaterialTheme.typography.bodySmall, color = Gris1)
+            Text(
+                text = entry.formattedFecha(),
+                style = MaterialTheme.typography.bodySmall,
+                color = Gris1
+            )
         }
     }
 }

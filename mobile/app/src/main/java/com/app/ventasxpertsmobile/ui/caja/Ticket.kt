@@ -108,7 +108,7 @@ fun TicketScreen(
                             Text("Subtotal")
                         }
 
-                        Divider(Modifier.padding(vertical = 4.dp))
+                        HorizontalDivider(Modifier.padding(vertical = 4.dp))
 
                         TicketItem("Coca cola 3lts", 2, 50.0)
                         TicketItem("Huevo - 1kg", 2, 30.0)

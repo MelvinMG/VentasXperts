@@ -36,6 +36,8 @@ import com.app.ventasxpertsmobile.data.network.RetrofitClient
 import com.app.ventasxpertsmobile.ui.templates.BaseScreen
 import com.app.ventasxpertsmobile.ui.theme.AzulPrincipal
 import kotlinx.coroutines.launch
+import androidx.compose.material.icons.filled.AccountCircle
+
 
 fun String.trimOrNull(): String? = this.trim().takeIf { it.isNotEmpty() }
 
@@ -86,16 +88,28 @@ fun CrearUsuarioScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Spacer(Modifier.height(10.dp))
-                Image(
-                    painter = if (imageUri != null) rememberAsyncImagePainter(imageUri)
-                    else painterResource(R.drawable.perfil),
-                    contentDescription = "Foto de perfil",
-                    modifier = Modifier
-                        .size(90.dp)
-                        .clip(CircleShape)
-                        .clickable { galleryLauncher.launch("image/*") },
-                    contentScale = ContentScale.Crop
-                )
+
+                if (imageUri != null) {
+                    Image(
+                        painter = rememberAsyncImagePainter(imageUri),
+                        contentDescription = "Foto de perfil",
+                        modifier = Modifier
+                            .size(90.dp)
+                            .clip(CircleShape)
+                            .clickable { galleryLauncher.launch("image/*") },
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Filled.AccountCircle,
+                        contentDescription = "Icono de usuario",
+                        modifier = Modifier
+                            .size(90.dp)
+                            .clickable { galleryLauncher.launch("image/*") },
+                        tint = AzulPrincipal
+                    )
+                }
+
                 Spacer(Modifier.height(12.dp))
 
                 Text(

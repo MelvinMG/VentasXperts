@@ -114,7 +114,6 @@ fun EditarUsuarioScreen(
                 isLoading -> {
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 }
-
                 errorLoading != null -> {
                     Text(
                         text = errorLoading ?: "",
@@ -122,7 +121,6 @@ fun EditarUsuarioScreen(
                         modifier = Modifier.align(Alignment.Center)
                     )
                 }
-
                 else -> {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Image(
@@ -275,7 +273,7 @@ fun EditarUsuarioScreen(
                                             successMessage = "✅ Usuario actualizado correctamente."
                                             showSuccessDialog = true
                                         } else {
-                                            dialogMessage = "❌ Error: ${response.errorBody()?.string()}"
+                                            dialogMessage = "❌ Error: ${response.errorBody()?.string() ?: "Error desconocido"}"
                                             showDialog = true
                                         }
                                     } catch (e: Exception) {
