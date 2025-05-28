@@ -1,5 +1,8 @@
 package com.app.ventasxpertsmobile.data.api
 import com.app.ventasxpertsmobile.data.model.Bitacora
+
+
+import com.app.ventasxpertsmobile.data.model.Proveedor
 import com.app.ventasxpertsmobile.data.model.Usuarios
 import retrofit2.Call
 import retrofit2.http.Body
@@ -77,6 +80,11 @@ interface ApiService {
     @POST("caja/carritoProducto/{id}/restar/")
     suspend fun restarUnidad(@Path("id") id: Int)
 
+    @GET("catalogo/proveedores/")
+    fun getProveedor(): Call<ProveedorResponse>
+
+    @GET("catalogo/proveedores/{id}/")
+    fun getProveedorById(@Path("id") id: Int): Call<Proveedor>
     @POST("caja/carritoProducto/{id}/quitar/")
     suspend fun quitarProducto(@Path("id") id: Int)
 

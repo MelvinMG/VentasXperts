@@ -12,17 +12,24 @@ import com.app.ventasxpertsmobile.ui.usuarios.UsuariosScreen
 import com.app.ventasxpertsmobile.ui.usuarios.DetalleUsuarioScreen
 import com.app.ventasxpertsmobile.ui.usuarios.CrearUsuarioScreen
 import com.app.ventasxpertsmobile.ui.usuarios.EditarUsuarioScreen
+import com.app.ventasxpertsmobile.data.model.Proveedor
 import com.app.ventasxpertsmobile.ui.bitacora.BitacoraScreen
-import com.app.ventasxpertsmobile.ui.caja.VentasScreen
-import com.app.ventasxpertsmobile.ui.caja.TicketScreen
 import com.app.ventasxpertsmobile.ui.caja.HistorialTicketsScreen
-import com.app.ventasxpertsmobile.ui.catalogo.TiendasCatalogoScreen
+import com.app.ventasxpertsmobile.ui.caja.TicketScreen
+import com.app.ventasxpertsmobile.ui.caja.VentasScreen
 import com.app.ventasxpertsmobile.ui.catalogo.TiendaProductosScreen
+import com.app.ventasxpertsmobile.ui.catalogo.TiendasCatalogoScreen
+import com.app.ventasxpertsmobile.ui.inventario.EditarProductoScreen
 import com.app.ventasxpertsmobile.ui.inventario.InventarioScreen
 import com.app.ventasxpertsmobile.ui.inventario.Producto
 import com.app.ventasxpertsmobile.ui.inventario.EditarProductoScreen
 import com.app.ventasxpertsmobile.ui.proveedor.ProveedorScreen
 import com.app.ventasxpertsmobile.ui.proveedor.DetalleProveedorScreen
+import com.app.ventasxpertsmobile.ui.proveedor.ProveedorScreen
+import com.app.ventasxpertsmobile.ui.usuarios.CrearUsuarioScreen
+import com.app.ventasxpertsmobile.ui.usuarios.DetalleUsuarioScreen
+import com.app.ventasxpertsmobile.ui.usuarios.UsuariosScreen
+
 
 @Composable
 fun AppNavHost(
@@ -33,6 +40,7 @@ fun AppNavHost(
         navController = navController,
         startDestination = NavigationItem.Usuarios.route
     ) {
+        // Usuarios
         composable(NavigationItem.Usuarios.route) {
             UsuariosScreen(
                 onLogout = onLogout,
@@ -69,12 +77,16 @@ fun AppNavHost(
                 onNavigationSelected = { route -> navController.navigate(route) }
             )
         }
+
+        // Bitacora
         composable(NavigationItem.Bitacora.route) {
             BitacoraScreen(
                 onLogout = onLogout,
                 onNavigationSelected = { route -> navController.navigate(route) }
             )
         }
+
+        // Caja
         composable(NavigationItem.Caja.route) {
             VentasScreen(
                 onLogout = onLogout,
@@ -95,6 +107,8 @@ fun AppNavHost(
                 onNavigationSelected = { route -> navController.navigate(route) }
             )
         }
+
+        // Catalogo
         composable("catalogo") {
             TiendasCatalogoScreen(
                 onLogout = onLogout,
@@ -121,6 +135,8 @@ fun AppNavHost(
             )
         }
 
+        // Proveedores
+
 
         composable(NavigationItem.Proveedor.route) {
             ProveedorScreen(
@@ -140,6 +156,8 @@ fun AppNavHost(
                 onNavigationSelected = { route -> navController.navigate(route) }
             )
         }
+
+        // Inventario
         composable(NavigationItem.Inventario.route) {
             val productos = listOf(
                 Producto(1, "Coca-Cola", 18.00, "Suficiente stock", "Refrescos"),
@@ -170,4 +188,3 @@ fun AppNavHost(
         }
     }
 }
-
