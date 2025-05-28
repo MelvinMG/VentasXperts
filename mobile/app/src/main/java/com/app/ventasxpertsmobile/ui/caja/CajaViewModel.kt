@@ -13,6 +13,7 @@ import retrofit2.Callback
 import retrofit2.Response
 import com.app.ventasxpertsmobile.data.model.CarritoProducto
 import com.app.ventasxpertsmobile.data.model.Producto
+import com.app.ventasxpertsmobile.data.model.ProductoDTO
 
 class CajaViewModel : ViewModel() {
 
@@ -61,8 +62,8 @@ class CajaViewModel : ViewModel() {
         }
     }
 
-    private val _productosCatalogo = MutableStateFlow<List<Producto>>(emptyList())
-    val productosCatalogo: StateFlow<List<Producto>> = _productosCatalogo
+    private val _productosCatalogo = MutableStateFlow<List<ProductoDTO>>(emptyList())
+    val productosCatalogo: StateFlow<List<ProductoDTO>> = _productosCatalogo
     fun cargarProductosCatalogo() {
         viewModelScope.launch {
             try {

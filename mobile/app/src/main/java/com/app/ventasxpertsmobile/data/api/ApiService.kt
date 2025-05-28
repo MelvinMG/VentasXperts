@@ -16,12 +16,11 @@ import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
 import com.app.ventasxpertsmobile.data.model.*
-import retrofit2.Response
 import retrofit2.http.*
 import com.app.ventasxpertsmobile.data.model.TiendaResponse
 import com.app.ventasxpertsmobile.data.model.CarritoProducto
 import com.app.ventasxpertsmobile.data.model.CarritoProductoResponse
-import com.app.ventasxpertsmobile.data.model.ProductoResponse
+
 
 
 interface ApiService {
