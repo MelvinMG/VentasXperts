@@ -18,7 +18,7 @@ Asegúrate de tener instalado lo siguiente antes de comenzar:
 
 ```bash
 # Crea usuario a traves de Thunder Client [POST]
-http://127.0.0.1:8000/api/users/creaa/
+http://127.0.0.1:8000/api/users/crear/
 
 # En auth basica pon las credenciales del super usuario que creaste
 

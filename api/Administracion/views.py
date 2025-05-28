@@ -1,27 +1,14 @@
 from rest_framework import viewsets, status
-from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
 from django.contrib.auth.models import User, Group
 from django.db import transaction
-from rest_framework.exceptions import ValidationError
-
-from .models import Persona
-from .serializers import UserSerializer, PersonaSerializer
+from .models import Persona, Bitacora
+from .serializers import UserSerializer, PersonaSerializer, BitacoraSerializer
 from .permissions import IsRoleUser
 from .adapters import UserAdapter
-
-from django.contrib.auth import authenticate, login, logout
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
-
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -35,16 +22,26 @@ class UserViewSet(viewsets.ModelViewSet):
             permission_classes = [IsAuthenticated]
         return [permission() for permission in permission_classes]
 
+    @transaction.atomic
+    def retrieve(self, request, pk=None):
+        try:
+            user = User.objects.get(pk=pk)
+            persona = Persona.objects.filter(user=user).first()
+            user_data = UserSerializer(user).data
+            roles = user.groups.values_list('name', flat=True)
+            user_data['roles'] = list(roles)
+            user_data['persona'] = PersonaSerializer(persona).data if persona else None
+            return Response(user_data, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({'detail': 'Usuario no encontrado'}, status=status.HTTP_404_NOT_FOUND)
 
-    # Verificacion de roles para cada usuario
     @action(detail=False, methods=['get'], url_path='me')
     def me(self, request):
         user = request.user
         roles = user.groups.values_list('name', flat=True)
 
-        # Acceder a la relación OneToOne con Persona
         try:
-            persona = user.persona  # gracias a related_name="persona"
+            persona = user.persona
             nombre = persona.nombre
             apPaterno = persona.apPaterno
         except Persona.DoesNotExist:
@@ -61,8 +58,6 @@ class UserViewSet(viewsets.ModelViewSet):
         }
         return Response(data)
 
-
-    @transaction.atomic
     @action(detail=False, methods=['get'])
     def list_users(self, request):
         if not request.user.groups.filter(name='Administrador').exists():
@@ -72,20 +67,12 @@ class UserViewSet(viewsets.ModelViewSet):
         for user in User.objects.all():
             persona = Persona.objects.filter(user=user).first()
             user_data = UserSerializer(user).data
-            
-            # Obtener roles (nombres de grupos) y agregarlos a user_data
             roles = user.groups.values_list('name', flat=True)
             user_data['roles'] = list(roles)
-            
-            if persona:
-                user_data.update(PersonaSerializer(persona).data)
-            
+            user_data['persona'] = PersonaSerializer(persona).data if persona else None
             users_data.append(user_data)
-
         return Response(users_data, status=status.HTTP_200_OK)
 
-
-    @transaction.atomic
     @action(detail=False, methods=['post'])
     def create_user(self, request):
         if not request.user.groups.filter(name='Administrador').exists():
@@ -102,6 +89,13 @@ class UserViewSet(viewsets.ModelViewSet):
 
         try:
             user, persona = UserAdapter.create_user(user_serializer, persona_serializer, request.user)
+            Bitacora.objects.create(
+                usuario=request.user,
+                persona=getattr(request.user, 'persona', None),
+                rol=', '.join(request.user.groups.values_list('name', flat=True)),
+                accion='create',
+                detalle=f'Usuario "{user.username}" creado por "{request.user.username}"'
+            )
             return Response({
                 'user': UserSerializer(user).data,
                 'persona': PersonaSerializer(persona).data
@@ -109,7 +103,6 @@ class UserViewSet(viewsets.ModelViewSet):
         except ValidationError as e:
             return Response(e.detail, status=status.HTTP_400_BAD_REQUEST)
 
-    @transaction.atomic
     @action(detail=True, methods=['put'])
     def update_user(self, request, pk=None):
         user = self.get_object()
@@ -127,6 +120,13 @@ class UserViewSet(viewsets.ModelViewSet):
 
         try:
             UserAdapter(user).update_user(user_serializer, persona_serializer, password_actual, password_nueva, request.user)
+            Bitacora.objects.create(
+                usuario=request.user,
+                persona=getattr(request.user, 'persona', None),
+                rol=', '.join(request.user.groups.values_list('name', flat=True)),
+                accion='update',
+                detalle=f'Usuario "{user.username}" actualizado por "{request.user.username}"'
+            )
             return Response({
                 'user': user_serializer.data,
                 'persona': persona_serializer.data
@@ -134,7 +134,6 @@ class UserViewSet(viewsets.ModelViewSet):
         except ValidationError as e:
             return Response(e.detail, status=status.HTTP_400_BAD_REQUEST)
 
-    @transaction.atomic
     @action(detail=True, methods=['delete'])
     def delete_user(self, request, pk=None):
         user = self.get_object()
@@ -142,19 +141,21 @@ class UserViewSet(viewsets.ModelViewSet):
             return Response({'detail': 'No tienes permiso para eliminar este usuario.'}, status=status.HTTP_403_FORBIDDEN)
 
         try:
+            username = user.username
             UserAdapter(user).delete_user(request.user)
+            Bitacora.objects.create(
+                usuario=request.user,
+                persona=getattr(request.user, 'persona', None),
+                rol=', '.join(request.user.groups.values_list('name', flat=True)),
+                accion='delete',
+                detalle=f'Usuario "{username}" eliminado por "{request.user.username}"'
+            )
             return Response({'detail': 'Usuario y persona eliminados correctamente.'}, status=status.HTTP_204_NO_CONTENT)
         except Exception as e:
             return Response({'detail': f'Error al eliminar: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
 
-    @transaction.atomic
     @action(detail=False, methods=['post'], url_path='assign_role_to_user')
     def assign_role_to_user(self, request):
-        """
-        Asigna un grupo (rol) a un usuario por su nombre de grupo.
-        """
-        print("DATA RECIBIDA:", request.data)
-
         if not request.user.groups.filter(name='Administrador').exists():
             return Response({'detail': 'No tienes permisos para asignar roles.'}, status=status.HTTP_403_FORBIDDEN)
 
@@ -168,7 +169,13 @@ class UserViewSet(viewsets.ModelViewSet):
             user = User.objects.get(username=username)
             group = Group.objects.get(name=group_name)
             user.groups.add(group)
-
+            Bitacora.objects.create(
+                usuario=request.user,
+                persona=getattr(request.user, 'persona', None),
+                rol=', '.join(request.user.groups.values_list('name', flat=True)),
+                accion='update',
+                detalle=f'Rol "{group_name}" asignado a usuario "{username}" por "{request.user.username}"'
+            )
             return Response({'detail': f'Rol "{group_name}" asignado correctamente a {username}.'}, status=status.HTTP_200_OK)
 
         except User.DoesNotExist:
@@ -178,7 +185,6 @@ class UserViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return Response({'detail': f'Error al asignar rol: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
 
-    @transaction.atomic
     @action(detail=False, methods=['get'])
     def list_roles(self, request):
         if not request.user.groups.filter(name='Administrador').exists():
@@ -190,7 +196,6 @@ class UserViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return Response({'detail': f'Error al obtener los roles: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
 
-    @transaction.atomic
     @action(detail=False, methods=['post'])
     def create_role(self, request):
         if not request.user.groups.filter(name='Administrador').exists():
@@ -208,7 +213,6 @@ class UserViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return Response({'detail': f'Error al crear el rol: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
 
-    @transaction.atomic
     @action(detail=True, methods=['put'])
     def update_role(self, request, pk=None):
         if not request.user.groups.filter(name='Administrador').exists():
@@ -227,7 +231,6 @@ class UserViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return Response({'detail': f'Error al actualizar el rol: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
 
-    @transaction.atomic
     @action(detail=True, methods=['delete'])
     def delete_role(self, request, pk=None):
         if not request.user.groups.filter(name='Administrador').exists():
@@ -241,3 +244,24 @@ class UserViewSet(viewsets.ModelViewSet):
             return Response({'detail': 'Rol no encontrado.'}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({'detail': f'Error al eliminar el rol: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class BitacoraViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Bitacora.objects.all().order_by('-created_at')
+    serializer_class = BitacoraSerializer
+    permission_classes = [IsAuthenticated]
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.queryset
+
+        fecha = request.query_params.get('fecha')
+        accion = request.query_params.get('accion')
+
+        if fecha:
+            queryset = queryset.filter(created_at__date=fecha)
+
+        if accion:
+            queryset = queryset.filter(accion=accion)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)

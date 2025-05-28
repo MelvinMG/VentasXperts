@@ -38,7 +38,6 @@ import compose.icons.fontawesomeicons.solid.UserEdit
 import android.widget.Toast
 import androidx.compose.ui.platform.LocalContext
 import com.app.ventasxpertsmobile.data.network.RetrofitClient
-import kotlinx.coroutines.launch
 import coil.compose.AsyncImage
 
 
@@ -50,7 +49,6 @@ fun UsuariosScreen(
     onAniadirUsuario: () -> Unit
 ) {
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
 
     var modoMosaico by remember { mutableStateOf(false) }
     var query by remember { mutableStateOf("") }

@@ -6,7 +6,7 @@ from django.db import transaction
 
 from Catalogo.factories.producto_factory import ProductoFactory
 from Catalogo.permissions import IsAdministradorOrGerente
-from Catalogo.serializers import ProductoSerializer, CategoriaSerializer, ProveedorSerializer
+from Catalogo.serializers import ProductoSerializer, CategoriaSerializer, ProveedorSerializer, TiendaSerializer, TiendaDetalleSerializer
 from Administracion.models import *
 
 from django.template.loader import render_to_string
@@ -18,17 +18,50 @@ from django.http import FileResponse
 class ProveedorViewSet(viewsets.ModelViewSet):
     queryset = Proveedor.objects.all()
     serializer_class = ProveedorSerializer
-    permission_classes = [IsAdministradorOrGerente]
 
 class CategoriaViewSet(viewsets.ModelViewSet):
     queryset = Categoria.objects.all()
     serializer_class = CategoriaSerializer
-    permission_classes = [IsAdministradorOrGerente]
+    
+class TiendaViewSet(viewsets.ModelViewSet):
+    queryset = Tienda.objects.all()
+    serializer_class = TiendaDetalleSerializer
+
+    @action(detail=True, methods=['get'], url_path='productos')
+    def listar_productos(self, request, pk=None):
+        try:
+            tienda = self.get_object()
+            productos = Producto.objects.filter(productotienda__tienda=tienda)
+            serializer = ProductoSerializer(productos, many=True)
+            return Response(serializer.data)
+        except Tienda.DoesNotExist:
+            return Response({'error': 'Tienda no encontrada'}, status=404)
+    
+    @action(detail=True, methods=['post'], url_path='asignar_productos')
+    def asignar_productos(self, request, pk=None):
+        tienda = self.get_object()
+        productos_ids = request.data.get('productos', [])
+
+        if not isinstance(productos_ids, list):
+            return Response({'error': 'El campo "productos" debe ser una lista de IDs.'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        productos = Producto.objects.filter(id__in=productos_ids)
+
+        # Crear relaciones si no existen
+        nuevos = 0
+        for producto in productos:
+            _, created = ProductoTienda.objects.get_or_create(tienda=tienda, producto=producto)
+            if created:
+                nuevos += 1
+
+        return Response({
+            'message': f'Se asignaron {nuevos} productos a la tienda "{tienda.nombre}".'
+        }, status=status.HTTP_200_OK)
     
 class ProductoViewSet(viewsets.ModelViewSet):
     queryset = Producto.objects.all()
     serializer_class = ProductoSerializer
-    permission_classes = [IsAdministradorOrGerente]  # ✅ Solo Administrador o Gerente pueden usar este ViewSet
 
     @action(detail=False, methods=['post'], url_path='crear_producto', permission_classes=[IsAdministradorOrGerente])
     @transaction.atomic

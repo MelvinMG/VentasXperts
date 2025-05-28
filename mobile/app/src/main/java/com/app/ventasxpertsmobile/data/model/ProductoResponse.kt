@@ -5,4 +5,5 @@ data class ProductoResponse(
     val next: String?,
     val previous: String?,
     val results: List<ProductoDTO>
+    val results: List<Producto>
 )

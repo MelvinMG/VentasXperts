@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User, Group
 from rest_framework import serializers
-from .models import Persona
+from .models import Persona, Bitacora
 
 class PersonaSerializer(serializers.ModelSerializer):
     foto_url = serializers.SerializerMethodField()  # Añadido para exponer la URL de la foto
@@ -51,3 +51,12 @@ class CategoriaSerializer(serializers.ModelSerializer):
         model = Categoria
         fields = '__all__'
         read_only_fields = ['id', 'created_at', 'update_at']
+
+
+class BitacoraSerializer(serializers.ModelSerializer):
+    usuario = serializers.StringRelatedField()
+    persona = serializers.StringRelatedField()
+
+    class Meta:
+        model = Bitacora
+        fields = '__all__'

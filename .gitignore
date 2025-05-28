@@ -2,10 +2,7 @@
 venv/
 .venv/
 env/
-
-
-
-
+.vscode/
 # Ignorar todos los archivos dentro de 'migrations'
 **/migrations/*
 

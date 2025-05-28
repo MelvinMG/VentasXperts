@@ -86,6 +86,26 @@ class Producto(models.Model):
     class Meta:
         db_table = 'Producto'
         verbose_name_plural = 'Productos'
+        
+#? Tabla de tiendas con una relacion uno a muchos con la tabla de productos
+class Tienda(models.Model):
+    nombre = models.CharField(max_length=255)
+    descripcion = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    update_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'Tienda'
+        verbose_name_plural = 'Tiendas'
+        
+#? Tabla de Productos le pertenece a Tienda
+class ProductoTienda(models.Model):
+    producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
+    tienda = models.ForeignKey(Tienda, on_delete=models.CASCADE)
+
+    class Meta:
+        db_table = 'Producto_Tienda'
+        verbose_name_plural = 'ProductosTienda'
 
 #? Tabla de Cajas le pertenece a Caja
 class Caja(models.Model):
@@ -123,7 +143,7 @@ class CarritoProducto(models.Model):
 #? Tabla de Carrito_x_Producto le pertenece a Caja
 class Venta(models.Model):
     carrito = models.ForeignKey(Carrito, on_delete=models.CASCADE)
-    caja = models.ForeignKey('Caja', on_delete=models.CASCADE)
+    caja = models.ForeignKey('Caja', on_delete=models.CASCADE, null=True) # Se asume que la caja es opcional
     finanzas = models.ForeignKey('Finanzas', on_delete=models.CASCADE)
     total = models.DecimalField(max_digits=10, decimal_places=2)
     fecha = models.DateTimeField()
@@ -163,7 +183,6 @@ class Bitacora(models.Model):
     detalle = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     update_at = models.DateTimeField(auto_now=True)
-
     class Meta:
         db_table = 'Bitacora'
         verbose_name_plural = 'Bitacoras'
@@ -172,6 +191,5 @@ class Bitacora(models.Model):
             models.Index(fields=['rol']),
             models.Index(fields=['created_at']),
         ]
-
     def __str__(self):
         return f"{self.usuario.username} - {self.accion}"

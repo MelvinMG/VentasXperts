@@ -12,19 +12,18 @@ data class Persona(
     val telefono: String?,
     val rfc: String?,
     val curp: String?,
-    val createdAt: String?,
+    val created_at: String?,
     val fotoUrl: String?
 ) {
     fun formattedFecha(): String {
         return try {
             val parser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSSXXX", Locale.getDefault())
             val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-            val date = parser.parse(createdAt ?: return "")
+            val date = parser.parse(created_at ?: return "")
             formatter.format(date ?: return "")
         } catch (e: Exception) {
             ""
         }
     }
-
 
 }

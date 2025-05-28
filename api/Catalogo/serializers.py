@@ -14,8 +14,28 @@ class ProductoSerializer(serializers.ModelSerializer):
             return "Carente"
         else:
             return "Suficiente"
+        
+class TiendaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tienda
+        fields = '__all__'
+        read_only_fields = ['id', 'created_at', 'update_at']
+        
+class ProductoTiendaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductoTienda
+        fields = ['id', 'producto', 'tienda']
 
+class TiendaDetalleSerializer(serializers.ModelSerializer):
+    productos = serializers.SerializerMethodField()
 
+    class Meta:
+        model = Tienda
+        fields = ['id', 'nombre', 'descripcion', 'created_at', 'update_at', 'productos']
+
+    def get_productos(self, obj):
+        productos = Producto.objects.filter(productotienda__tienda=obj)
+        return ProductoSerializer(productos, many=True).data
 
 class CategoriaSerializer(serializers.ModelSerializer):
     class Meta:
