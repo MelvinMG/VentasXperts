@@ -8,16 +8,16 @@ import com.app.ventasxpertsmobile.data.network.RetrofitClient
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import com.app.ventasxpertsmobile.data.model.StockUpdateRequest
 
 class ProductoViewModel : ViewModel() {
 
     val categorias = mutableStateListOf<CategoriaDTO>()
-    val productos = mutableStateListOf<ProductoDTO>()  // Lista para productos
+    val productos = mutableStateListOf<ProductoDTO>()
 
     val isLoading = mutableStateOf(false)
     val errorMessage = mutableStateOf<String?>(null)
 
-    // Cargar categorías
     fun cargarCategorias() {
         viewModelScope.launch {
             isLoading.value = true
@@ -40,7 +40,6 @@ class ProductoViewModel : ViewModel() {
         }
     }
 
-    // Nueva función para cargar productos
     fun cargarProductos() {
         viewModelScope.launch {
             isLoading.value = true
@@ -63,8 +62,38 @@ class ProductoViewModel : ViewModel() {
         }
     }
 
+    fun actualizarStockProducto(
+        idProducto: Int,
+        cantidadAgregar: Int,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
+        viewModelScope.launch {
+            isLoading.value = true
+            try {
+                val productoActual = productos.find { it.id == idProducto }
+                if (productoActual == null) {
+                    onError("Producto no encontrado")
+                    isLoading.value = false
+                    return@launch
+                }
+                val nuevoStock = productoActual.stockInventario + cantidadAgregar
+                val body = StockUpdateRequest(stockInventario = nuevoStock)
+                val response = RetrofitClient.api.modificarProducto(idProducto, body)
+                if (response.isSuccessful) {
+                    onSuccess()
+                    cargarProductos()
+                } else {
+                    onError("Error al actualizar stock: ${response.code()}")
+                }
+            } catch (e: Exception) {
+                onError("Excepción: ${e.localizedMessage}")
+            } finally {
+                isLoading.value = false
+            }
+        }
+    }
 
-    // Agregar producto
     fun agregarProducto(
         codigo: String,
         nombre: String,
@@ -82,6 +111,7 @@ class ProductoViewModel : ViewModel() {
             isLoading.value = true
             try {
                 val producto = ProductoDTO(
+                    id = 0, // Id se generará en backend
                     codigo = codigo,
                     nombre = nombre,
                     categoria = categoriaId,
@@ -108,4 +138,35 @@ class ProductoViewModel : ViewModel() {
             }
         }
     }
+
+    fun eliminarProducto(
+        idProducto: Int,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
+        viewModelScope.launch {
+            isLoading.value = true
+            try {
+                val response = RetrofitClient.api.eliminarProducto(idProducto)
+                if (response.isSuccessful) {
+                    // Refrescar productos luego de eliminar
+                    cargarProductos()
+                    onSuccess()
+                } else {
+                    cargarProductos()
+                    onSuccess()
+                    onError("Error al eliminar producto: ${response.code()}")
+                }
+            } catch (e: Exception) {
+                onError("Excepción: ${e.localizedMessage}")
+                cargarProductos()
+                onSuccess()
+            } finally {
+                isLoading.value = false
+            }
+        }
+    }
+
+
+
 }

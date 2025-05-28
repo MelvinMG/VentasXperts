@@ -20,13 +20,15 @@ import com.app.ventasxpertsmobile.ui.templates.BaseScreen
 import com.app.ventasxpertsmobile.ui.theme.AzulPrincipal
 import androidx.compose.foundation.BorderStroke
 
+// Modelo UI para mostrar producto con id real y otros campos
 data class Producto(
-    val id: Int,
+    val id: Int,              // ID real del producto desde backend
+    val codigo: String,
     val nombre: String,
     val precio: Double,
     val estadoStock: String,
     val categoria: String,
-    val categoriaId: Int // Importante tener el ID para filtrar correctamente
+    val categoriaId: Int      // Para filtrar
 )
 
 @Composable
@@ -68,6 +70,7 @@ fun SearchAndFilterBar(
             Icon(Icons.Default.Add, contentDescription = "Agregar", tint = Color.White)
         }
         Spacer(modifier = Modifier.width(8.dp))
+
         Box {
             IconButton(
                 onClick = { stockMenuExpanded = true },
@@ -93,6 +96,7 @@ fun SearchAndFilterBar(
             }
         }
         Spacer(modifier = Modifier.width(8.dp))
+
         Box {
             IconButton(
                 onClick = { categoryMenuExpanded = true },
@@ -175,7 +179,7 @@ fun InventarioScreen(
     viewModel: ProductoViewModel = viewModel(),
     onAgregar: () -> Unit,
     onEditar: (Producto) -> Unit,
-    onEliminar: (Producto) -> Unit,
+    onEliminar: (Producto) -> Unit,  // No usar más, se usa viewModel.eliminarProducto
     onLogout: () -> Unit = {},
     onNavigationSelected: (String) -> Unit = {}
 ) {
@@ -190,7 +194,8 @@ fun InventarioScreen(
 
     val productosUI = viewModel.productos.map {
         Producto(
-            id = it.codigo.hashCode(),
+            id = it.id,                // ID real desde backend, no hashCode
+            codigo = it.codigo,
             nombre = it.nombre,
             precio = it.precioTienda,
             estadoStock = when {
@@ -199,7 +204,7 @@ fun InventarioScreen(
                 else -> "Suficiente stock"
             },
             categoria = viewModel.categorias.find { cat -> cat.id == it.categoria }?.nombre ?: "Sin categoría",
-            categoriaId = it.categoria // Aquí asignamos directamente el id para comparar
+            categoriaId = it.categoria
         )
     }
 
@@ -236,6 +241,7 @@ fun InventarioScreen(
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(vertical = 8.dp).align(Alignment.Start)
             )
+
             SearchAndFilterBar(
                 searchText = searchText,
                 onSearchTextChanged = { searchText = it },
@@ -250,7 +256,9 @@ fun InventarioScreen(
                 stockOptions = stockOptions,
                 categoryOptions = categoryOptions.map { it.first }
             )
+
             Spacer(modifier = Modifier.height(16.dp))
+
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.fillMaxWidth()
@@ -269,6 +277,7 @@ fun InventarioScreen(
             }
         }
 
+        // Dialogo para agregar stock
         if (productoSeleccionado != null) {
             AlertDialog(
                 onDismissRequest = { productoSeleccionado = null },
@@ -292,8 +301,15 @@ fun InventarioScreen(
                 },
                 confirmButton = {
                     TextButton(onClick = {
-                        // TODO: lógica para actualizar stock
-                        productoSeleccionado = null
+                        val cantidadInt = cantidadStock.toIntOrNull() ?: 0
+                        if (cantidadInt > 0 && productoSeleccionado != null) {
+                            viewModel.actualizarStockProducto(
+                                idProducto = productoSeleccionado!!.id,
+                                cantidadAgregar = cantidadInt,
+                                onSuccess = { productoSeleccionado = null },
+                                onError = { error -> Log.e("InventarioScreen", "Error al actualizar stock: $error") }
+                            )
+                        }
                     }) {
                         Text("Guardar")
                     }
@@ -306,6 +322,7 @@ fun InventarioScreen(
             )
         }
 
+        // Dialogo para eliminar producto
         if (productoEliminar != null) {
             AlertDialog(
                 onDismissRequest = { productoEliminar = null },
@@ -313,11 +330,19 @@ fun InventarioScreen(
                 text = { Text("¿Está seguro que desea eliminar el producto ${productoEliminar?.nombre}?") },
                 confirmButton = {
                     TextButton(onClick = {
-                        onEliminar(productoEliminar!!)
-                        productoEliminar = null
+                        viewModel.eliminarProducto(
+                            idProducto = productoEliminar!!.id,
+                            onSuccess = {
+                                productoEliminar = null
+                            },
+                            onError = { error ->
+                                Log.e("InventarioScreen", "Error al eliminar producto: $error")
+                            }
+                        )
                     }) {
                         Text("Eliminar")
                     }
+
                 },
                 dismissButton = {
                     TextButton(onClick = { productoEliminar = null }) {

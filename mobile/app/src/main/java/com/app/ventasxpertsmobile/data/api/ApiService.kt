@@ -5,11 +5,15 @@ import com.app.ventasxpertsmobile.data.model.Usuarios
 import com.app.ventasxpertsmobile.data.model.ProductoResponse
 import com.app.ventasxpertsmobile.data.model.CategoriaResponse
 import com.app.ventasxpertsmobile.data.model.ProductoDTO
+import com.app.ventasxpertsmobile.data.model.StockUpdateRequest
+import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.PUT
 import retrofit2.http.Path
 
 
@@ -29,12 +33,22 @@ interface ApiService {
     @GET("catalogo/categorias/")
     suspend fun obtenerCategorias(): Response<CategoriaResponse>
 
-
     @POST("catalogo/productos/crear_producto/")
     suspend fun agregarProducto(@Body producto: ProductoDTO): Response<ProductoDTO>
 
     @GET("catalogo/productos/")
     suspend fun obtenerProductos(): Response<ProductoResponse>
 
+    // CORREGIDO: función para modificar producto
+    @PUT("catalogo/productos/{id}/modificar/")
+    suspend fun modificarProducto(
+        @Path("id") id: Int,
+        @Body stockUpdate: StockUpdateRequest
+    ): Response<Void>
+
+    @DELETE("catalogo/productos/{id}/eliminar/")
+    suspend fun eliminarProducto(@Path("id") id: Int): Response<ResponseBody>
 
 }
+
+

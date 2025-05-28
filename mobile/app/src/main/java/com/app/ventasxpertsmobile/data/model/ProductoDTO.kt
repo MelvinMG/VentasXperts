@@ -3,6 +3,7 @@ package com.app.ventasxpertsmobile.data.model
 import com.google.gson.annotations.SerializedName
 
 data class ProductoDTO(
+    val id: Int,
     val codigo: String,
     val nombre: String,
     @SerializedName("categoria_id") val categoria: Int,
