@@ -122,6 +122,7 @@ fun AppNavHost(
                 productos = productos,
                 onAgregar = { navController.navigate("editar_producto/Nuevo%20producto") },
                 onEditar = { producto -> navController.navigate("editar_producto/${producto.nombre.replace(" ", "%20")}") },
+                onEliminar = {},
                 onLogout = onLogout,
                 onNavigationSelected = { route -> navController.navigate(route) }
             )
@@ -134,7 +135,6 @@ fun AppNavHost(
             EditarProductoScreen(
                 nombreProducto = nombreProducto,
                 onCancel = { navController.popBackStack() },
-                onCreate = { navController.popBackStack() },
                 navController = navController
             )
         }

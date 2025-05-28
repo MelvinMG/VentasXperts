@@ -1,4 +1,8 @@
 package com.app.ventasxpertsmobile.data.model
 
-class CategoriaResponse {
-}
+data class CategoriaResponse(
+    val count: Int,
+    val next: String?,
+    val previous: String?,
+    val results: List<CategoriaDTO>
+)

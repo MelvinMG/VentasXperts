@@ -2,11 +2,15 @@ package com.app.ventasxpertsmobile.data.api
 
 
 import com.app.ventasxpertsmobile.data.model.Usuarios
+import com.app.ventasxpertsmobile.data.model.ProductoDTO
+import com.app.ventasxpertsmobile.data.model.CategoriaResponse
 import retrofit2.Call
+import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
+
 
 interface ApiService {
     @POST("token/")
@@ -20,6 +24,13 @@ interface ApiService {
 
     @GET("users/{id}/")
     fun getUsuarioById(@Path("id") id: Int): Call<Usuarios>
+
+    @GET("catalogo/categorias/")
+    suspend fun obtenerCategorias(): Response<CategoriaResponse>
+
+
+    @POST("catalogo/productos/crear_producto/")
+    suspend fun agregarProducto(@Body producto: ProductoDTO): Response<ProductoDTO>
 
 
 }

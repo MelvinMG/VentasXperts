@@ -1,4 +1,6 @@
 package com.app.ventasxpertsmobile.data.model
 
-class CategoriaDTO {
-}
+data class CategoriaDTO(
+    val id: Int,
+    val nombre: String
+)

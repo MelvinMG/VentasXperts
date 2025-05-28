@@ -122,7 +122,8 @@ fun SearchAndFilterBar(
 fun ProductoCard(
     producto: Producto,
     onAgregar: () -> Unit,
-    onEditar: () -> Unit
+    onEditar: () -> Unit,
+    onEliminar: () -> Unit  // Nuevo callback para eliminar
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -158,6 +159,9 @@ fun ProductoCard(
                 IconButton(onClick = onEditar) {
                     Icon(Icons.Default.Edit, contentDescription = "Editar", tint = AzulPrincipal, modifier = Modifier.size(28.dp))
                 }
+                IconButton(onClick = onEliminar) {
+                    Icon(Icons.Default.Delete, contentDescription = "Eliminar", tint = Color.Red, modifier = Modifier.size(28.dp))
+                }
             }
         }
     }
@@ -169,6 +173,7 @@ fun InventarioScreen(
     productos: List<Producto>,
     onAgregar: () -> Unit,
     onEditar: (Producto) -> Unit,
+    onEliminar: (Producto) -> Unit,  // Nuevo callback para eliminar
     onLogout: () -> Unit = {},
     onNavigationSelected: (String) -> Unit = {}
 ) {
@@ -179,7 +184,13 @@ fun InventarioScreen(
     val stockOptions = listOf("Todos", "Sin stock", "Mínimo de stock", "Suficiente stock")
     val categoryOptions = listOf("Todas") + productos.map { it.categoria }.distinct()
 
-    // Filtrar productos
+    // Estado para manejar modal de agregar cantidad
+    var productoSeleccionado by remember { mutableStateOf<Producto?>(null) }
+    var cantidadStock by remember { mutableStateOf("") }
+
+    // Estado para manejar modal de confirmación eliminación
+    var productoEliminar by remember { mutableStateOf<Producto?>(null) }
+
     val productosFiltrados = productos.filter { producto ->
         (stockFilter == "Todos" || producto.estadoStock == stockFilter) &&
                 (categoryFilter == "Todas" || producto.categoria == categoryFilter) &&
@@ -225,11 +236,79 @@ fun InventarioScreen(
                 items(productosFiltrados) { producto ->
                     ProductoCard(
                         producto = producto,
-                        onAgregar = onAgregar,
-                        onEditar = { onEditar(producto) }
+                        onAgregar = {
+                            productoSeleccionado = producto
+                            cantidadStock = ""
+                        },
+                        onEditar = { onEditar(producto) },
+                        onEliminar = { productoEliminar = producto } // Abrir modal eliminar
                     )
                 }
             }
+        }
+
+        // Modal agregar cantidad (igual que antes)
+        if (productoSeleccionado != null) {
+            AlertDialog(
+                onDismissRequest = { productoSeleccionado = null },
+                title = { Text("Agregar a stock") },
+                text = {
+                    Column {
+                        Text("Ingrese cantidad a agregar para: ${productoSeleccionado?.nombre}")
+                        Spacer(modifier = Modifier.height(8.dp))
+                        OutlinedTextField(
+                            value = cantidadStock,
+                            onValueChange = { newVal ->
+                                if (newVal.all { it.isDigit() }) {
+                                    cantidadStock = newVal
+                                }
+                            },
+                            label = { Text("Cantidad") },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            // Aquí iría la lógica para actualizar stock
+                            productoSeleccionado = null
+                        }
+                    ) {
+                        Text("Guardar")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { productoSeleccionado = null }) {
+                        Text("Cerrar")
+                    }
+                }
+            )
+        }
+
+        // Modal confirmación eliminar producto
+        if (productoEliminar != null) {
+            AlertDialog(
+                onDismissRequest = { productoEliminar = null },
+                title = { Text("Confirmar eliminación") },
+                text = { Text("¿Está seguro que desea eliminar el producto ${productoEliminar?.nombre}?") },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            onEliminar(productoEliminar!!)
+                            productoEliminar = null
+                        }
+                    ) {
+                        Text("Eliminar")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { productoEliminar = null }) {
+                        Text("Cancelar")
+                    }
+                }
+            )
         }
     }
 }
@@ -247,6 +326,7 @@ fun InventarioScreenPreview() {
     InventarioScreen(
         productos = productos,
         onAgregar = {},
+        onEliminar = {},
         onEditar = {}
     )
 }

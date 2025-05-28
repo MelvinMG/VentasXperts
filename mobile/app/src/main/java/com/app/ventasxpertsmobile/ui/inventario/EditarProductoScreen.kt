@@ -1,107 +1,80 @@
 package com.app.ventasxpertsmobile.ui.inventario
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.ShoppingCart
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
-import com.app.ventasxpertsmobile.R
+import com.app.ventasxpertsmobile.data.model.CategoriaDTO
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditarProductoScreen(
     nombreProducto: String = "Nuevo producto",
+    viewModel: ProductoViewModel = viewModel(),
     onCancel: () -> Unit = {},
-    onCreate: () -> Unit = {},
-    onLogout: () -> Unit = {},
-    navController: NavController // Pasamos el NavController para manejar la navegación
+    navController: NavController
 ) {
+    var codigo by remember { mutableStateOf("") }
+    var nombre by remember { mutableStateOf("") }
+    var categoriaSeleccionada by remember { mutableStateOf<CategoriaDTO?>(null) }
+    var expandedCategoria by remember { mutableStateOf(false) }
+    var precioProveedor by remember { mutableStateOf("") }
+    var precioCliente by remember { mutableStateOf("") }
+    var stockInventario by remember { mutableStateOf("") }
+    var stockMinimo by remember { mutableStateOf("") }
+    val errorMessage = remember { mutableStateOf<String?>(null) }
+    var mostrarConfirmacion by remember { mutableStateOf(false) }
+    val isLoading = viewModel.isLoading.value
+
+    // Carga las categorías al iniciar la pantalla
+    LaunchedEffect(Unit) {
+        viewModel.cargarCategorias()
+    }
+
+    if (mostrarConfirmacion) {
+        AlertDialog(
+            onDismissRequest = { mostrarConfirmacion = false },
+            title = { Text("Confirmar guardado") },
+            text = { Text("¿Estás seguro que deseas guardar el producto \"$nombre\"?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    mostrarConfirmacion = false
+                    guardarProducto(
+                        codigo, nombre, categoriaSeleccionada, stockInventario, stockMinimo,
+                        precioProveedor, precioCliente, viewModel, errorMessage,
+                        onSuccess = {
+                            errorMessage.value = null
+                            navController.popBackStack()
+                        },
+                        onError = { error -> errorMessage.value = error }
+                    )
+                }) {
+                    Text("Guardar")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { mostrarConfirmacion = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        // Barra superior con la flecha de regreso, ícono de carrito vacío y título
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Flecha de regreso
-            IconButton(onClick = { navController.popBackStack() }) {
-                Icon(
-                    Icons.Filled.ArrowBack,
-                    contentDescription = "Regresar",
-                    tint = Color.Black,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
-
-            // Ícono del carrito vacío
-            Image(
-                painter = painterResource(id = R.drawable.logo_1_sin),
-                contentDescription = "Logo",
-                modifier = Modifier
-                    .height(28.dp)
-                    .padding(end = 8.dp)
-            )
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            // Título de la pantalla
-            Text(
-                text = nombreProducto,
-                style = MaterialTheme.typography.titleLarge
-
-
-            )
-
-
-
-
-        }
-
-        // Imagen grande con nombre del producto encima
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(160.dp)
-                .background(Color(0xFFD3D3D3))
-        ) {
-            Icon(
-                Icons.Default.Image,
-                contentDescription = null,
-                tint = Color(0xFFAAAAAA),
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .size(90.dp)
-            )
-            Text(
-                text = nombreProducto,
-                color = Color.White,
-                fontWeight = FontWeight.Bold,
-                style = MaterialTheme.typography.headlineMedium,
-                modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .padding(12.dp)
-            )
-        }
-
-        // Formulario
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -115,17 +88,6 @@ fun EditarProductoScreen(
                 modifier = Modifier.padding(bottom = 12.dp)
             )
 
-            var codigo by remember { mutableStateOf("") }
-            var nombre by remember { mutableStateOf("") }
-            var categoria by remember { mutableStateOf("Categoría") }
-            val categorias = listOf("Categoría", "Refresco", "Lácteos", "Cereales", "Botanas", "Otros")
-            var expandedCategoria by remember { mutableStateOf(false) }
-            var precioProveedor by remember { mutableStateOf("") }
-            var precioCliente by remember { mutableStateOf("") }
-            var gananciaPorcentaje by remember { mutableStateOf("") }
-            var gananciaDinero by remember { mutableStateOf("") }
-
-            // Inputs de texto para editar el producto
             OutlinedTextField(
                 value = codigo,
                 onValueChange = { codigo = it },
@@ -146,40 +108,58 @@ fun EditarProductoScreen(
                 singleLine = true,
             )
 
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp)
+            ExposedDropdownMenuBox(
+                expanded = expandedCategoria,
+                onExpandedChange = { expandedCategoria = !expandedCategoria }
             ) {
                 OutlinedTextField(
-                    value = categoria,
+                    readOnly = true,
+                    value = categoriaSeleccionada?.nombre ?: "Seleccionar categoría",
                     onValueChange = {},
                     label = { Text("Categoría") },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedCategoria) },
                     modifier = Modifier
+                        .menuAnchor()
                         .fillMaxWidth()
-                        .clickable { expandedCategoria = true },
-                    enabled = false,
-                    trailingIcon = {
-                        IconButton(onClick = { expandedCategoria = true }) {
-                            Icon(Icons.Filled.ArrowDropDown, contentDescription = "Seleccionar categoría")
-                        }
-                    }
                 )
-                DropdownMenu(
+
+                ExposedDropdownMenu(
                     expanded = expandedCategoria,
                     onDismissRequest = { expandedCategoria = false }
                 ) {
-                    categorias.forEach { cat ->
+                    viewModel.categorias.forEach { cat ->
                         DropdownMenuItem(
-                            text = { Text(cat) },
+                            text = { Text(cat.nombre) },
                             onClick = {
-                                categoria = cat
+                                categoriaSeleccionada = cat
                                 expandedCategoria = false
                             }
                         )
                     }
                 }
             }
+
+            OutlinedTextField(
+                value = stockInventario,
+                onValueChange = { stockInventario = it },
+                label = { Text("Stock Inventario") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            )
+
+            OutlinedTextField(
+                value = stockMinimo,
+                onValueChange = { stockMinimo = it },
+                label = { Text("Stock Mínimo") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            )
 
             OutlinedTextField(
                 value = precioProveedor,
@@ -195,26 +175,6 @@ fun EditarProductoScreen(
                 value = precioCliente,
                 onValueChange = { precioCliente = it },
                 label = { Text("Precio cliente") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp),
-                singleLine = true
-            )
-
-            OutlinedTextField(
-                value = gananciaPorcentaje,
-                onValueChange = { gananciaPorcentaje = it },
-                label = { Text("Ganancia %") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp),
-                singleLine = true
-            )
-
-            OutlinedTextField(
-                value = gananciaDinero,
-                onValueChange = { gananciaDinero = it },
-                label = { Text("Ganancia \$") },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 4.dp),
@@ -242,7 +202,8 @@ fun EditarProductoScreen(
                 }
 
                 Button(
-                    onClick = onCreate,
+                    onClick = { mostrarConfirmacion = true },
+                    enabled = !isLoading,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFF223A7A),
                         contentColor = Color.White
@@ -252,21 +213,64 @@ fun EditarProductoScreen(
                         .padding(start = 8.dp),
                     elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp)
                 ) {
-                    Text("Guardar")
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            strokeWidth = 2.dp,
+                            color = Color.White
+                        )
+                    } else {
+                        Text("Guardar")
+                    }
+                }
+
+                errorMessage.value?.let { msg ->
+                    Text(
+                        text = msg,
+                        color = Color.Red,
+                        modifier = Modifier.padding(top = 12.dp)
+                    )
                 }
             }
         }
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun EditarProductoScreenPreview() {
-    val navController = rememberNavController() // Agregamos el NavController
-    EditarProductoScreen(
-        nombreProducto = "Producto de prueba",
-        onCancel = { navController.popBackStack() },  // Regresa al backstack al presionar "Cancelar"
-        onCreate = { navController.popBackStack() },  // Regresa al backstack al presionar "Guardar"
-        navController = navController // Pasamos el navController
+private fun guardarProducto(
+    codigo: String,
+    nombre: String,
+    categoriaSeleccionada: CategoriaDTO?,
+    stockInventario: String,
+    stockMinimo: String,
+    precioProveedor: String,
+    precioCliente: String,
+    viewModel: ProductoViewModel,
+    errorMessage: MutableState<String?>,
+    onSuccess: () -> Unit,
+    onError: (String) -> Unit
+) {
+    val stockInv = stockInventario.toIntOrNull() ?: 0
+    val stockMin = stockMinimo.toIntOrNull() ?: 0
+    val precioProv = precioProveedor.toDoubleOrNull() ?: 0.0
+    val precioCli = precioCliente.toDoubleOrNull() ?: 0.0
+    val categoriaId = categoriaSeleccionada?.id ?: -1
+
+    if (categoriaId == -1) {
+        errorMessage.value = "Debe seleccionar una categoría"
+        return
+    }
+
+    viewModel.agregarProducto(
+        codigo = codigo,
+        nombre = nombre,
+        categoriaId = categoriaId,
+        stockInventario = stockInv,
+        stockMinimo = stockMin,
+        precioProveedor = precioProv,
+        precioCliente = precioCli,
+        gananciaPorcentaje = null,
+        gananciaDinero = null,
+        onSuccess = onSuccess,
+        onError = onError
     )
 }
