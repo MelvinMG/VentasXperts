@@ -2,8 +2,9 @@ package com.app.ventasxpertsmobile.data.api
 
 
 import com.app.ventasxpertsmobile.data.model.Usuarios
-import com.app.ventasxpertsmobile.data.model.ProductoDTO
+import com.app.ventasxpertsmobile.data.model.ProductoResponse
 import com.app.ventasxpertsmobile.data.model.CategoriaResponse
+import com.app.ventasxpertsmobile.data.model.ProductoDTO
 import retrofit2.Call
 import retrofit2.Response
 import retrofit2.http.Body
@@ -31,6 +32,9 @@ interface ApiService {
 
     @POST("catalogo/productos/crear_producto/")
     suspend fun agregarProducto(@Body producto: ProductoDTO): Response<ProductoDTO>
+
+    @GET("catalogo/productos/")
+    suspend fun obtenerProductos(): Response<ProductoResponse>
 
 
 }

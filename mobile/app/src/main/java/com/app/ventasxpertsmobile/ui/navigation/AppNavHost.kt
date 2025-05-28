@@ -1,6 +1,7 @@
 package com.app.ventasxpertsmobile.ui.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -16,12 +17,11 @@ import com.app.ventasxpertsmobile.ui.caja.HistorialTicketsScreen
 import com.app.ventasxpertsmobile.ui.catalogo.TiendasCatalogoScreen
 import com.app.ventasxpertsmobile.ui.catalogo.TiendaProductosScreen
 import com.app.ventasxpertsmobile.ui.inventario.InventarioScreen
-import com.app.ventasxpertsmobile.ui.inventario.Producto
+import com.app.ventasxpertsmobile.ui.inventario.ProductoViewModel
 import com.app.ventasxpertsmobile.ui.inventario.EditarProductoScreen
-
-
 import com.app.ventasxpertsmobile.ui.proveedor.ProveedorScreen
 import com.app.ventasxpertsmobile.ui.proveedor.DetalleProveedorScreen
+
 @Composable
 fun AppNavHost(
     navController: NavHostController,
@@ -111,15 +111,9 @@ fun AppNavHost(
             )
         }
         composable(NavigationItem.Inventario.route) {
-            val productos = listOf(
-                Producto(1, "Coca-Cola", 18.00, "Suficiente stock", "Refrescos"),
-                Producto(2, "Fanta", 17.00, "Mínimo de stock", "Refrescos"),
-                Producto(3, "Corn Flakes", 42.00, "Sin stock", "Cereal"),
-                Producto(4, "Yogur", 25.00, "Suficiente stock", "Lácteos"),
-                Producto(5, "Cheetos", 14.00, "Suficiente stock", "Botanas")
-            )
+            val productoViewModel = viewModel<ProductoViewModel>()
             InventarioScreen(
-                productos = productos,
+                viewModel = productoViewModel,
                 onAgregar = { navController.navigate("editar_producto/Nuevo%20producto") },
                 onEditar = { producto -> navController.navigate("editar_producto/${producto.nombre.replace(" ", "%20")}") },
                 onEliminar = {},

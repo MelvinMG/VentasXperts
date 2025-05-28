@@ -8,11 +8,16 @@ import com.app.ventasxpertsmobile.data.network.RetrofitClient
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+
 class ProductoViewModel : ViewModel() {
+
     val categorias = mutableStateListOf<CategoriaDTO>()
+    val productos = mutableStateListOf<ProductoDTO>()  // Lista para productos
+
     val isLoading = mutableStateOf(false)
     val errorMessage = mutableStateOf<String?>(null)
 
+    // Cargar categorías
     fun cargarCategorias() {
         viewModelScope.launch {
             isLoading.value = true
@@ -35,6 +40,31 @@ class ProductoViewModel : ViewModel() {
         }
     }
 
+    // Nueva función para cargar productos
+    fun cargarProductos() {
+        viewModelScope.launch {
+            isLoading.value = true
+            try {
+                val response = RetrofitClient.api.obtenerProductos()
+                if (response.isSuccessful) {
+                    productos.clear()
+                    response.body()?.results?.let {
+                        productos.addAll(it)
+                    }
+                    errorMessage.value = null
+                } else {
+                    errorMessage.value = "Error al cargar productos: ${response.code()}"
+                }
+            } catch (e: Exception) {
+                errorMessage.value = "Error: ${e.localizedMessage}"
+            } finally {
+                isLoading.value = false
+            }
+        }
+    }
+
+
+    // Agregar producto
     fun agregarProducto(
         codigo: String,
         nombre: String,
