@@ -1,20 +1,16 @@
 package com.app.ventasxpertsmobile.data.model
 
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Locale
 
-data class Persona(
-    val nombre: String?,
-    val apPaterno: String?,
-    val apMaterno: String?,
-    val genero: String?,
-    val correo: String?,
-    val telefono: String?,
-    val rfc: String?,
-    val curp: String?,
-    val created_at: String?,
-    val fotoUrl: String?
-) {
+data class Bitacora(
+    val id: Int,
+    val usuario: String?,
+    val rol: String?,
+    val accion: String?,
+    val detalle: String?,
+    val created_at: String?
+){
     fun formattedFecha(): String {
         return try {
             val parser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSSXXX", Locale.getDefault())
@@ -25,5 +21,4 @@ data class Persona(
             ""
         }
     }
-
 }

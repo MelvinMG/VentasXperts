@@ -163,7 +163,6 @@ class Bitacora(models.Model):
     detalle = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     update_at = models.DateTimeField(auto_now=True)
-
     class Meta:
         db_table = 'Bitacora'
         verbose_name_plural = 'Bitacoras'
@@ -172,6 +171,5 @@ class Bitacora(models.Model):
             models.Index(fields=['rol']),
             models.Index(fields=['created_at']),
         ]
-
     def __str__(self):
         return f"{self.usuario.username} - {self.accion}"
