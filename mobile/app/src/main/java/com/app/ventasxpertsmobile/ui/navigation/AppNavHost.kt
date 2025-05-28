@@ -9,6 +9,7 @@ import androidx.navigation.navArgument
 import com.app.ventasxpertsmobile.ui.usuarios.UsuariosScreen
 import com.app.ventasxpertsmobile.ui.usuarios.DetalleUsuarioScreen
 import com.app.ventasxpertsmobile.ui.usuarios.CrearUsuarioScreen
+import com.app.ventasxpertsmobile.ui.usuarios.EditarUsuarioScreen
 import com.app.ventasxpertsmobile.ui.bitacora.BitacoraScreen
 import com.app.ventasxpertsmobile.ui.caja.VentasScreen
 import com.app.ventasxpertsmobile.ui.caja.TicketScreen
@@ -18,10 +19,9 @@ import com.app.ventasxpertsmobile.ui.catalogo.TiendaProductosScreen
 import com.app.ventasxpertsmobile.ui.inventario.InventarioScreen
 import com.app.ventasxpertsmobile.ui.inventario.Producto
 import com.app.ventasxpertsmobile.ui.inventario.EditarProductoScreen
-
-
 import com.app.ventasxpertsmobile.ui.proveedor.ProveedorScreen
 import com.app.ventasxpertsmobile.ui.proveedor.DetalleProveedorScreen
+
 @Composable
 fun AppNavHost(
     navController: NavHostController,
@@ -52,6 +52,17 @@ fun AppNavHost(
         }
         composable("aniadir_usuario") {
             CrearUsuarioScreen(
+                onLogout = onLogout,
+                onNavigationSelected = { route -> navController.navigate(route) }
+            )
+        }
+        composable(
+            "EditarUsuario/{userId}",
+            arguments = listOf(navArgument("userId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val userId = backStackEntry.arguments?.getInt("userId") ?: 0
+            EditarUsuarioScreen(
+                userId = userId,
                 onLogout = onLogout,
                 onNavigationSelected = { route -> navController.navigate(route) }
             )
@@ -138,6 +149,5 @@ fun AppNavHost(
                 navController = navController
             )
         }
-        // Agrega más pantallas según sea necesario
     }
 }

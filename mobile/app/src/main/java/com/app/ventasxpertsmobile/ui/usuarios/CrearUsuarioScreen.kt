@@ -1,13 +1,14 @@
 package com.app.ventasxpertsmobile.ui.usuarios
 
-
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -18,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -27,8 +29,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import com.app.ventasxpertsmobile.R
+import com.app.ventasxpertsmobile.data.model.CreateUserRequest
+import com.app.ventasxpertsmobile.data.model.PersonasData
+import com.app.ventasxpertsmobile.data.model.UsersData
+import com.app.ventasxpertsmobile.data.network.RetrofitClient
 import com.app.ventasxpertsmobile.ui.templates.BaseScreen
 import com.app.ventasxpertsmobile.ui.theme.AzulPrincipal
+import kotlinx.coroutines.launch
+
+fun String.trimOrNull(): String? = this.trim().takeIf { it.isNotEmpty() }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -55,17 +64,25 @@ fun CrearUsuarioScreen(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? -> imageUri = uri }
 
+    val scrollState = rememberScrollState()
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+
     BaseScreen(
         title = "Crear usuario",
         onLogout = onLogout,
         onNavigationSelected = onNavigationSelected
-    ) {
-        innerPadding ->
+    ) { innerPadding ->
+
+        Box(modifier = Modifier.fillMaxSize()) {
+
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
+                    .verticalScroll(scrollState)
                     .padding(innerPadding)
-                    .padding(horizontal = 10.dp), // Espacio para el botón
+                    .padding(horizontal = 10.dp)
+                    .align(Alignment.TopCenter),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Spacer(Modifier.height(10.dp))
@@ -81,7 +98,6 @@ fun CrearUsuarioScreen(
                 )
                 Spacer(Modifier.height(12.dp))
 
-                // ---- SECCIÓN USUARIO ----
                 Text(
                     "Usuario",
                     color = AzulPrincipal,
@@ -96,9 +112,7 @@ fun CrearUsuarioScreen(
                     onValueChange = { username = it },
                     label = { Text("Nombre de usuario") },
                     singleLine = true,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 6.dp)
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp)
                 )
                 OutlinedTextField(
                     value = password,
@@ -114,12 +128,9 @@ fun CrearUsuarioScreen(
                             )
                         }
                     },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 10.dp)
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp)
                 )
 
-                // ---- SECCIÓN PERSONA ----
                 Text(
                     "Persona",
                     color = AzulPrincipal,
@@ -150,7 +161,7 @@ fun CrearUsuarioScreen(
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp)
                 )
-                // Dropdown género
+
                 ExposedDropdownMenuBox(
                     expanded = generoExpanded,
                     onExpandedChange = { generoExpanded = !generoExpanded }
@@ -181,6 +192,7 @@ fun CrearUsuarioScreen(
                         }
                     }
                 }
+
                 OutlinedTextField(
                     value = correo,
                     onValueChange = { correo = it },
@@ -211,7 +223,68 @@ fun CrearUsuarioScreen(
                 )
 
                 Button(
-                    onClick = { /* lógica de crear usuario */ },
+                    onClick = {
+                        if (username.isBlank() || password.isBlank() || correo.isBlank() ||
+                            nombre.isBlank() || apPaterno.isBlank() || genero.isBlank()
+                        ) {
+                            scope.launch {
+                                snackbarHostState.showSnackbar("⚠️ Por favor completa todos los campos obligatorios.")
+                            }
+                            return@Button
+                        }
+
+                        val api = RetrofitClient.api
+
+                        val request = CreateUserRequest(
+                            user = UsersData(
+                                username = username.trim(),
+                                email = correo.trim(),
+                                password = password,
+                                first_name = nombre.trim(),
+                                last_name = apPaterno.trim()
+                            ),
+                            persona = PersonasData(
+                                nombre = nombre.trim(),
+                                apPaterno = apPaterno.trim(),
+                                apMaterno = apMaterno.trimOrNull(),
+                                genero = when (genero) {
+                                    "Masculino" -> "M"
+                                    "Femenino" -> "F"
+                                    "Prefiero no decirlo" -> "N"
+                                    else -> "D"
+                                },
+                                correo = correo.trim(),
+                                telefono = telefono.trimOrNull(),
+                                rfc = rfc.trimOrNull(),
+                                curp = curp.trimOrNull()
+                            )
+                        )
+
+                        scope.launch {
+                            try {
+                                val response = api.createUser(request)
+                                if (response.isSuccessful) {
+                                    snackbarHostState.showSnackbar("✅ Usuario creado correctamente")
+                                    username = ""
+                                    password = ""
+                                    nombre = ""
+                                    apPaterno = ""
+                                    apMaterno = ""
+                                    genero = ""
+                                    correo = ""
+                                    telefono = ""
+                                    rfc = ""
+                                    curp = ""
+                                    imageUri = null
+                                } else {
+                                    val errorMsg = response.errorBody()?.string() ?: "Error desconocido"
+                                    snackbarHostState.showSnackbar("❌ Error: $errorMsg")
+                                }
+                            } catch (e: Exception) {
+                                snackbarHostState.showSnackbar("⚠️ Error de red: ${e.localizedMessage}")
+                            }
+                        }
+                    },
                     colors = ButtonDefaults.buttonColors(containerColor = AzulPrincipal),
                     modifier = Modifier
                         .fillMaxWidth()
@@ -219,8 +292,17 @@ fun CrearUsuarioScreen(
                 ) {
                     Text("Crear", color = Color.White, fontWeight = FontWeight.Bold)
                 }
+
                 Spacer(Modifier.height(16.dp))
             }
+
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(12.dp)
+            )
+        }
     }
 }
 

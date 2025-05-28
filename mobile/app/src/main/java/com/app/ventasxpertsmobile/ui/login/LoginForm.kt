@@ -1,31 +1,15 @@
 package com.app.ventasxpertsmobile.ui.login
 
-
 import android.widget.Toast
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -35,24 +19,13 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.app.ventasxpertsmobile.data.api.LoginRequest
-import com.app.ventasxpertsmobile.data.api.TokenResponse
-import com.app.ventasxpertsmobile.data.api.UsuarioResponse
+import com.app.ventasxpertsmobile.data.model.Usuario
 import com.app.ventasxpertsmobile.data.auth.TokenManager
 import com.app.ventasxpertsmobile.data.auth.UserSessionManager
 import com.app.ventasxpertsmobile.data.network.RetrofitClient
 import com.app.ventasxpertsmobile.ui.navigation.NavigationItem
-import com.app.ventasxpertsmobile.ui.theme.AppTypography
-import com.app.ventasxpertsmobile.ui.theme.AzulPrincipal
-import com.app.ventasxpertsmobile.ui.theme.Blanco1
-import com.app.ventasxpertsmobile.ui.theme.FondoInput
-import com.app.ventasxpertsmobile.ui.theme.Gris1
-import com.app.ventasxpertsmobile.ui.theme.Gris2
-import com.app.ventasxpertsmobile.ui.theme.OpenSans
-import com.app.ventasxpertsmobile.ui.theme.TextoInput
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
-
+import com.app.ventasxpertsmobile.ui.theme.*
+import kotlinx.coroutines.launch
 
 @Composable
 fun LoginForm(onLoginSuccess: (String) -> Unit) {
@@ -60,6 +33,7 @@ fun LoginForm(onLoginSuccess: (String) -> Unit) {
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var loading by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
 
     Box(
         modifier = Modifier
@@ -133,63 +107,51 @@ fun LoginForm(onLoginSuccess: (String) -> Unit) {
             } else {
                 Button(
                     onClick = {
-                        loading = true
-                        val loginRequest = LoginRequest(username, password)
-                        RetrofitClient.api.login(loginRequest).enqueue(object : Callback<TokenResponse> {
-                            override fun onResponse(call: Call<TokenResponse>, response: Response<TokenResponse>) {
-                                if (response.isSuccessful) {
-                                    val tokens = response.body()
+                        scope.launch {
+                            loading = true
+                            try {
+                                val loginResponse = RetrofitClient.api.login(LoginRequest(username, password))
+                                if (loginResponse.isSuccessful) {
+                                    val tokens = loginResponse.body()
                                     val accessToken = tokens?.access
-
                                     if (accessToken != null) {
                                         TokenManager.saveAccessToken(context, accessToken)
+                                        RetrofitClient.initialize(context)
 
-                                        RetrofitClient.api.getCurrentUser().enqueue(object : Callback<UsuarioResponse> {
-                                            override fun onResponse(call: Call<UsuarioResponse>, response: Response<UsuarioResponse>) {
-                                                loading = false
-                                                if (response.isSuccessful) {
-                                                    val user = response.body()
-                                                    if (user != null) {
-                                                        UserSessionManager.saveRoles(context, user.roles.toSet())
-                                                        val fullName = "${user.nombre} ${user.apPaterno}"
-                                                        UserSessionManager.saveUserFullName(context, fullName)
+                                        val userResponse = RetrofitClient.api.getCurrentUser()
+                                        if (userResponse.isSuccessful) {
+                                            val user: Usuario? = userResponse.body()
+                                            if (user != null) {
+                                                UserSessionManager.saveRoles(context, user.roles.toSet())
+                                                val fullName = "${user.nombre ?: ""} ${user.apPaterno ?: ""}".trim()
+                                                UserSessionManager.saveUserFullName(context, fullName)
 
-                                                        val route = when {
-                                                            "Administrador" in user.roles -> NavigationItem.Usuarios.route
-                                                            "Gerente" in user.roles -> NavigationItem.Bitacora.route
-                                                            "Cajero" in user.roles -> NavigationItem.Catalogo.route
-                                                            else -> NavigationItem.Catalogo.route
-                                                        }
-
-                                                        onLoginSuccess(route) // envía la ruta hacia MainActivity
-                                                    } else {
-                                                        Toast.makeText(context, "Error al obtener usuario", Toast.LENGTH_SHORT).show()
-                                                    }
-                                                } else {
-                                                    Toast.makeText(context, "Error al obtener usuario", Toast.LENGTH_SHORT).show()
+                                                val route = when {
+                                                    "Administrador" in user.roles -> NavigationItem.Usuarios.route
+                                                    "Gerente" in user.roles -> NavigationItem.Bitacora.route
+                                                    "Cajero" in user.roles -> NavigationItem.Catalogo.route
+                                                    else -> NavigationItem.Catalogo.route
                                                 }
-                                            }
-                                            override fun onFailure(call: Call<UsuarioResponse>, t: Throwable) {
-                                                loading = false
-                                                Toast.makeText(context, "Error de red: ${t.message}", Toast.LENGTH_SHORT).show()
-                                            }
-                                        })
 
+                                                onLoginSuccess(route)
+                                            } else {
+                                                Toast.makeText(context, "Error al obtener usuario", Toast.LENGTH_SHORT).show()
+                                            }
+                                        } else {
+                                            Toast.makeText(context, "Error al obtener usuario", Toast.LENGTH_SHORT).show()
+                                        }
                                     } else {
-                                        loading = false
                                         Toast.makeText(context, "Error: Token inválido", Toast.LENGTH_SHORT).show()
                                     }
                                 } else {
-                                    loading = false
                                     Toast.makeText(context, "Credenciales incorrectas", Toast.LENGTH_SHORT).show()
                                 }
-                            }
-
-                            override fun onFailure(call: Call<TokenResponse>, t: Throwable) {
+                            } catch (e: Exception) {
+                                Toast.makeText(context, "Error de red: ${e.message}", Toast.LENGTH_SHORT).show()
+                            } finally {
                                 loading = false
-                                Toast.makeText(context, "Error de red: ${t.message}", Toast.LENGTH_SHORT).show()
                             }
-                        })
+                        }
                     },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = AzulPrincipal,
