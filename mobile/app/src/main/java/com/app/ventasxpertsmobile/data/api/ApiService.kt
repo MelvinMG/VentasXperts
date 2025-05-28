@@ -1,6 +1,7 @@
 package com.app.ventasxpertsmobile.data.api
 
 
+import com.app.ventasxpertsmobile.data.model.Proveedor
 import com.app.ventasxpertsmobile.data.model.Usuarios
 import retrofit2.Call
 import retrofit2.http.Body
@@ -21,5 +22,10 @@ interface ApiService {
     @GET("users/{id}/")
     fun getUsuarioById(@Path("id") id: Int): Call<Usuarios>
 
+    @GET("catalogo/proveedores/")
+    fun getProveedor(): Call<ProveedorResponse>
+
+    @GET("catalogo/proveedores/{id}/")
+    fun getProveedorById(@Path("id") id: Int): Call<Proveedor>
 
 }
