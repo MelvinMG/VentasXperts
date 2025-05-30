@@ -23,6 +23,7 @@ import com.app.ventasxpertsmobile.ui.inventario.EditarProductoScreen
 import com.app.ventasxpertsmobile.ui.inventario.InventarioScreen
 import com.app.ventasxpertsmobile.ui.inventario.Producto
 import com.app.ventasxpertsmobile.ui.inventario.EditarProductoScreen
+import com.app.ventasxpertsmobile.ui.inventario.ProductoViewModel
 import com.app.ventasxpertsmobile.ui.proveedor.ProveedorScreen
 import com.app.ventasxpertsmobile.ui.proveedor.DetalleProveedorScreen
 import com.app.ventasxpertsmobile.ui.proveedor.ProveedorScreen
@@ -159,17 +160,13 @@ fun AppNavHost(
 
         // Inventario
         composable(NavigationItem.Inventario.route) {
-            val productos = listOf(
-                Producto(1, "Coca-Cola", 18.00, "Suficiente stock", "Refrescos"),
-                Producto(2, "Fanta", 17.00, "Mínimo de stock", "Refrescos"),
-                Producto(3, "Corn Flakes", 42.00, "Sin stock", "Cereal"),
-                Producto(4, "Yogur", 25.00, "Suficiente stock", "Lácteos"),
-                Producto(5, "Cheetos", 14.00, "Suficiente stock", "Botanas")
-            )
+            val productoViewModel = viewModel<ProductoViewModel>()
+
             InventarioScreen(
-                productos = productos,
+                viewModel = productoViewModel,
                 onAgregar = { navController.navigate("editar_producto/Nuevo%20producto") },
                 onEditar = { producto -> navController.navigate("editar_producto/${producto.nombre.replace(" ", "%20")}") },
+                onEliminar = {},
                 onLogout = onLogout,
                 onNavigationSelected = { route -> navController.navigate(route) }
             )
@@ -182,7 +179,6 @@ fun AppNavHost(
             EditarProductoScreen(
                 nombreProducto = nombreProducto,
                 onCancel = { navController.popBackStack() },
-                onCreate = { navController.popBackStack() },
                 navController = navController
             )
         }

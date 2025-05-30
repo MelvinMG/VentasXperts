@@ -1,33 +1,38 @@
-from Administracion.models import Producto, Categoria, Proveedor
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError 
+from Administracion.models import Categoria, Proveedor, Producto
 
 class ProductoFactory:
     @staticmethod
     def crear_producto_con_dependencias(data):
-        categoria_nombre = data.pop('categoria_nombre', None)
-        proveedor_nombre = data.pop('proveedor_nombre', None)
+        categoria_id = data.get('categoria_id')
+        proveedor_id = data.get('proveedor_id', None)  # Opcional
 
-        if not categoria_nombre:
-            raise ValidationError({'categoria_nombre': 'Este campo es requerido.'})
+        if not categoria_id:
+            raise ValidationError({'categoria_id': 'Este campo es requerido.'})
 
-        if not proveedor_nombre:
-            raise ValidationError({'proveedor_nombre': 'Este campo es requerido.'})
+        try:
+            categoria = Categoria.objects.get(id=categoria_id)
+        except Categoria.DoesNotExist:
+            raise ValidationError({'categoria_id': 'Categoría no encontrada.'})
 
-        categoria, _ = Categoria.objects.get_or_create(nombre=categoria_nombre)
-        proveedor, _ = Proveedor.objects.get_or_create(nombre=proveedor_nombre, defaults={
-            'telefono': data.get('proveedor_telefono', '0000000000'),
-            'correo': data.get('proveedor_correo', 'proveedor@demo.com')
-        })
+        proveedor = None
+        if proveedor_id is not None:
+            try:
+                proveedor = Proveedor.objects.get(id=proveedor_id)
+            except Proveedor.DoesNotExist:
+                raise ValidationError({'proveedor_id': 'Proveedor no encontrado.'})
 
         producto = Producto.objects.create(
             codigo=data['codigo'],
             nombre=data['nombre'],
             categoria=categoria,
-            proveedor=proveedor,
+            proveedor=proveedor,  # Puede ser None
             stock_Inventario=data['stock_Inventario'],
             stock_Minimo=data['stock_Minimo'],
             precio_proveedor=data['precio_proveedor'],
-            precio_tienda=data['precio_tienda']
+            precio_tienda=data['precio_tienda'],
+            ganancia_porcentaje=data.get('ganancia_porcentaje'),
+            ganancia_pesos=data.get('ganancia_pesos'),
         )
 
         return producto

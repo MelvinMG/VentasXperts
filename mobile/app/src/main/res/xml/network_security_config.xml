@@ -3,6 +3,7 @@
     <domain-config cleartextTrafficPermitted="true">
         <!--Este es la direccion para la poder utilizarlo en el celular-->
         <!--<domain includeSubdomains="true">192.168.1.2</domain>-->
-        <domain includeSubdomains="true">10.0.2.2</domain>
+        <!--<domain includeSubdomains="true">10.0.2.2</domain>-->
+        <domain includeSubdomains="true">10.31.10.225</domain>
     </domain-config>
 </network-security-config>

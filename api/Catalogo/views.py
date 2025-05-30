@@ -67,7 +67,21 @@ class ProductoViewSet(viewsets.ModelViewSet):
     @transaction.atomic
     def crear_producto(self, request):
         try:
-            producto = ProductoFactory.crear_producto_con_dependencias(request.data)
+            data = request.data
+            producto_data = {
+                "codigo": data.get("codigo"),
+                "nombre": data.get("nombre"),
+                "categoria_id": data.get("categoria_id"),
+                "proveedor_id": data.get("proveedor_id"),  # opcional
+                "stock_Inventario": data.get("stock_Inventario"),
+                "stock_Minimo": data.get("stock_Minimo"),
+                "precio_proveedor": data.get("precio_proveedor"),
+                "precio_tienda": data.get("precio_tienda"),
+                "ganancia_porcentaje": data.get("ganancia_porcentaje"),
+                "ganancia_pesos": data.get("ganancia_pesos"),
+            }
+
+            producto = ProductoFactory.crear_producto_con_dependencias(producto_data)
 
             user = request.user
             persona = Persona.objects.filter(user=user).first()
@@ -90,7 +104,6 @@ class ProductoViewSet(viewsets.ModelViewSet):
             return Response({'error': e.detail}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
         
     @action(detail=True, methods=['put'], url_path='modificar', permission_classes=[IsAdministradorOrGerente])
     @transaction.atomic
@@ -235,6 +248,3 @@ class ProductoViewSet(viewsets.ModelViewSet):
 
         except Exception as e:
             return Response({'error': f'Excepción: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-

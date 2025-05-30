@@ -1,7 +1,6 @@
 package com.app.ventasxpertsmobile.data.api
+
 import com.app.ventasxpertsmobile.data.model.Bitacora
-
-
 import com.app.ventasxpertsmobile.data.model.Proveedor
 import com.app.ventasxpertsmobile.data.model.Usuarios
 import retrofit2.Call
@@ -17,6 +16,12 @@ import com.app.ventasxpertsmobile.data.model.TiendaResponse
 import com.app.ventasxpertsmobile.data.model.CarritoProducto
 import com.app.ventasxpertsmobile.data.model.CarritoProductoResponse
 import com.app.ventasxpertsmobile.data.model.ProductoResponse
+
+
+import com.app.ventasxpertsmobile.data.model.CategoriaResponse
+import com.app.ventasxpertsmobile.data.model.ProductoDTO
+import com.app.ventasxpertsmobile.data.model.StockUpdateRequest
+import okhttp3.ResponseBody
 
 interface ApiService {
     @POST("token/")
@@ -93,4 +98,24 @@ interface ApiService {
 
     @POST("caja/ventas/procesar_venta/")
     suspend fun procesarVenta()
+
+    @GET("catalogo/categorias/")
+    suspend fun obtenerCategorias(): Response<CategoriaResponse>
+
+    @POST("catalogo/productos/crear_producto/")
+    suspend fun agregarProducto(@Body producto: ProductoDTO): Response<ProductoDTO>
+
+    @GET("catalogo/productos/")
+    suspend fun obtenerProductos(): Response<ProductoResponse>
+
+    // CORREGIDO: función para modificar producto
+    @PUT("catalogo/productos/{id}/modificar/")
+    suspend fun modificarProducto(
+        @Path("id") id: Int,
+        @Body stockUpdate: StockUpdateRequest
+    ): Response<Void>
+
+    @DELETE("catalogo/productos/{id}/eliminar/")
+    suspend fun eliminarProducto(@Path("id") id: Int): Response<ResponseBody>
+
 }
